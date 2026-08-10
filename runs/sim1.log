@@ -7,3 +7,74 @@ inner 956 tiles / pseudo-test 402 tiles
 [A] ep 04 loss 0.4247 (42s/ep, 3.9m)
 [A] ep 05 loss 0.3440 (46s/ep, 4.6m) VAL 0.5199 cell=0.666 tumo=0.608 size=0.406 elon=0.554 disp=0.365 *
 [A] ep 06 loss 0.3672 (47s/ep, 5.4m)
+[A] ep 07 loss 0.2766 (49s/ep, 6.2m)
+[A] ep 08 loss 0.3437 (47s/ep, 7.0m) VAL 0.5455 cell=0.695 tumo=0.640 size=0.448 elon=0.574 disp=0.371 *
+[A] ep 09 loss 0.2867 (47s/ep, 7.8m)
+[A] ep 10 loss 0.2729 (42s/ep, 8.5m)
+[A] ep 11 loss 0.3130 (43s/ep, 9.2m) VAL 0.5435 cell=0.727 tumo=0.615 size=0.431 elon=0.549 disp=0.395
+[A] ep 12 loss 0.3332 (47s/ep, 10.0m)
+[A] ep 13 loss 0.3107 (42s/ep, 10.7m)
+[A] ep 14 loss 0.2866 (42s/ep, 11.4m) VAL 0.5267 cell=0.684 tumo=0.635 size=0.436 elon=0.502 disp=0.377
+[A] ep 15 loss 0.3079 (45s/ep, 12.1m)
+[A] ep 16 loss 0.3264 (42s/ep, 12.8m)
+[A] ep 17 loss 0.2926 (42s/ep, 13.5m) VAL 0.5504 cell=0.734 tumo=0.643 size=0.419 elon=0.539 disp=0.418 *
+[A] ep 18 loss 0.2654 (46s/ep, 14.3m)
+[A] ep 19 loss 0.2565 (42s/ep, 15.0m)
+[A] ep 20 loss 0.2934 (43s/ep, 15.7m) VAL 0.5471 cell=0.681 tumo=0.654 size=0.421 elon=0.541 disp=0.438
+[A] ep 21 loss 0.2527 (45s/ep, 16.5m)
+[A] ep 22 loss 0.2414 (42s/ep, 17.2m)
+[A] ep 23 loss 0.2891 (43s/ep, 17.9m) VAL 0.5647 cell=0.686 tumo=0.691 size=0.482 elon=0.544 disp=0.420 *
+[A] ep 24 loss 0.2489 (46s/ep, 18.7m)
+[A] ep 25 loss 0.2710 (42s/ep, 19.4m)
+[A] ep 26 loss 0.2366 (43s/ep, 20.1m) VAL 0.5726 cell=0.715 tumo=0.691 size=0.465 elon=0.581 disp=0.411 *
+[A] ep 27 loss 0.2777 (46s/ep, 20.8m)
+[A] ep 28 loss 0.2644 (42s/ep, 21.5m)
+[A] ep 29 loss 0.2720 (42s/ep, 22.2m) VAL 0.5571 cell=0.723 tumo=0.675 size=0.443 elon=0.549 disp=0.396
+[A] ep 30 loss 0.2359 (46s/ep, 23.0m)
+[A] ep 31 loss 0.2386 (42s/ep, 23.7m)
+[A] ep 32 loss 0.2695 (43s/ep, 24.4m) VAL 0.5628 cell=0.709 tumo=0.676 size=0.460 elon=0.544 disp=0.425
+[A] ep 33 loss 0.2332 (46s/ep, 25.2m)
+[A] ep 34 loss 0.2468 (43s/ep, 25.9m)
+[A] ep 35 loss 0.2279 (42s/ep, 26.6m) VAL 0.5683 cell=0.707 tumo=0.705 size=0.462 elon=0.571 disp=0.397
+[A] ep 36 loss 0.2344 (45s/ep, 27.3m)
+[A] ep 37 loss 0.2405 (42s/ep, 28.0m)
+[A] ep 38 loss 0.2519 (43s/ep, 28.8m) VAL 0.5668 cell=0.725 tumo=0.684 size=0.462 elon=0.570 disp=0.393
+[A] ep 39 loss 0.2619 (47s/ep, 29.5m) VAL 0.5544 cell=0.716 tumo=0.676 size=0.436 elon=0.556 disp=0.389
+[A] best val mean_tau 0.5726
+[B] ep 00 loss 0.9937 (44s/ep, 30.3m)
+[B] ep 01 loss 0.5524 (45s/ep, 31.1m)
+[B] ep 02 loss 0.5192 (45s/ep, 31.8m) VAL 0.4133 cell=0.619 tumo=0.591 size=0.264 elon=0.277 disp=0.315 *
+[B] ep 03 loss 0.2957 (47s/ep, 32.6m)
+[B] ep 04 loss 0.3574 (44s/ep, 33.4m)
+[B] ep 05 loss 0.2968 (44s/ep, 34.1m) VAL 0.4544 cell=0.609 tumo=0.600 size=0.355 elon=0.416 disp=0.293 *
+[B] ep 06 loss 0.2958 (47s/ep, 34.9m)
+[B] ep 07 loss 0.3153 (44s/ep, 35.6m)
+[B] ep 08 loss 0.3755 (45s/ep, 36.4m) VAL 0.4188 cell=0.578 tumo=0.606 size=0.234 elon=0.378 disp=0.297
+[B] ep 09 loss 0.2952 (47s/ep, 37.1m)
+[B] ep 10 loss 0.2803 (44s/ep, 37.9m)
+[B] ep 11 loss 0.2808 (43s/ep, 38.6m) VAL 0.4666 cell=0.621 tumo=0.659 size=0.335 elon=0.332 disp=0.386 *
+[B] ep 12 loss 0.2774 (48s/ep, 39.4m)
+[B] ep 13 loss 0.2841 (44s/ep, 40.1m)
+[B] ep 14 loss 0.2641 (44s/ep, 40.9m) VAL 0.5156 cell=0.703 tumo=0.676 size=0.402 elon=0.433 disp=0.364 *
+[B] ep 15 loss 0.3074 (47s/ep, 41.6m)
+[B] ep 16 loss 0.3001 (45s/ep, 42.4m)
+[B] ep 17 loss 0.3050 (44s/ep, 43.1m) VAL 0.4762 cell=0.649 tumo=0.624 size=0.316 elon=0.407 disp=0.385
+[B] ep 18 loss 0.2713 (47s/ep, 43.9m)
+[B] ep 19 loss 0.2660 (49s/ep, 44.7m)
+[B] ep 20 loss 0.2479 (46s/ep, 45.5m) VAL 0.4825 cell=0.655 tumo=0.627 size=0.320 elon=0.412 disp=0.398
+[B] ep 21 loss 0.2648 (51s/ep, 46.3m)
+[B] ep 22 loss 0.2782 (49s/ep, 47.1m)
+[B] ep 23 loss 0.2872 (48s/ep, 47.9m) VAL 0.5033 cell=0.682 tumo=0.657 size=0.376 elon=0.428 disp=0.374
+[B] ep 24 loss 0.2526 (48s/ep, 48.7m)
+[B] ep 25 loss 0.2414 (47s/ep, 49.5m)
+[B] ep 26 loss 0.2476 (51s/ep, 50.4m) VAL 0.4986 cell=0.703 tumo=0.627 size=0.355 elon=0.425 disp=0.383
+[B] ep 27 loss 0.2462 (73s/ep, 51.6m)
+[B] ep 28 loss 0.2531 (65s/ep, 52.7m)
+[B] ep 29 loss 0.2576 (66s/ep, 53.8m) VAL 0.4953 cell=0.692 tumo=0.610 size=0.345 elon=0.396 disp=0.433
+[B] ep 30 loss 0.2605 (58s/ep, 54.7m)
+[B] ep 31 loss 0.2331 (46s/ep, 55.5m)
+[B] ep 32 loss 0.2445 (46s/ep, 56.3m) VAL 0.4797 cell=0.692 tumo=0.595 size=0.342 elon=0.392 disp=0.377
+[B] ep 33 loss 0.2529 (50s/ep, 57.1m)
+[B] ep 34 loss 0.2502 (47s/ep, 57.9m)
+[B] ep 35 loss 0.2332 (47s/ep, 58.7m) VAL 0.5044 cell=0.730 tumo=0.606 size=0.372 elon=0.411 disp=0.403
+[B] ep 36 loss 0.2542 (48s/ep, 59.5m)

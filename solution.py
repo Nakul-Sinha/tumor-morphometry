@@ -81,7 +81,8 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 # CPU is THE reference device (identical behavior everywhere; no cuda branch).
-DEVICE = "cpu"
+# CH2_DEVICE is a dev-only escape hatch; the eval default is always cpu.
+DEVICE = _env("CH2_DEVICE", "cpu", str)
 try:
     _N_CPU = len(os.sched_getaffinity(0))  # respects core pinning (Linux)
 except AttributeError:

@@ -1,3 +1,34 @@
 loading images...
 inner 956 tiles / pseudo-test 402 tiles
 [A] ep 00 loss 1.4367 (65s/ep, 1.5m)
+[A] ep 01 loss 0.7952 (69s/ep, 2.6m)
+[A] ep 02 loss 0.5626 (48s/ep, 3.4m) VAL 0.5430 cell=0.709 tumo=0.705 size=0.381 elon=0.490 disp=0.429 *
+[A] ep 03 loss 0.4080 (37s/ep, 4.1m)
+[A] ep 04 loss 0.3690 (33s/ep, 4.6m)
+[A] ep 05 loss 0.4533 (31s/ep, 5.1m) VAL 0.5523 cell=0.729 tumo=0.673 size=0.470 elon=0.546 disp=0.344 *
+[A] ep 06 loss 0.3289 (36s/ep, 5.7m)
+[A] ep 07 loss 0.3023 (60s/ep, 6.7m)
+[A] ep 08 loss 0.3244 (62s/ep, 7.8m) VAL 0.5389 cell=0.691 tumo=0.636 size=0.419 elon=0.554 disp=0.395
+[A] ep 09 loss 0.3415 (95s/ep, 9.3m)
+[A] ep 10 loss 0.3293 (102s/ep, 11.0m)
+[A] ep 11 loss 0.2788 (104s/ep, 12.8m) VAL 0.5379 cell=0.704 tumo=0.631 size=0.440 elon=0.535 disp=0.381
+[A] ep 12 loss 0.2981 (105s/ep, 14.5m)
+[A] ep 13 loss 0.3163 (70s/ep, 15.7m)
+[A] ep 14 loss 0.2595 (101s/ep, 17.4m) VAL 0.5522 cell=0.721 tumo=0.648 size=0.425 elon=0.558 disp=0.409
+[A] ep 15 loss 0.2626 (119s/ep, 19.3m)
+[A] ep 16 loss 0.2816 (100s/ep, 21.0m)
+[A] ep 17 loss 0.2982 (88s/ep, 22.5m) VAL 0.5449 cell=0.703 tumo=0.656 size=0.451 elon=0.558 disp=0.357
+[A] ep 18 loss 0.2725 (67s/ep, 23.6m)
+[A] ep 19 loss 0.3055 (61s/ep, 24.6m) VAL 0.5554 cell=0.724 tumo=0.664 size=0.485 elon=0.546 disp=0.358 *
+[A] best val mean_tau 0.5554
+[select] cthr=0.0001: val mean_tau 0.5425
+[select] cthr=0.0002: val mean_tau 0.5472
+[select] cthr=0.0003: val mean_tau 0.5554
+[select] cthr=0.0005: val mean_tau 0.5808
+[select] chose cthr=0.0005
+[select] size_spread: primary 0.5273 alt 0.4310 -> primary
+[select] elongation: primary 0.5539 alt 0.5829 -> alt
+[ptest] A_tta1: mean 0.5574 | cell=0.741 tumo=0.595 size=0.494 elon=0.552 disp=0.405
+[ptest] A_tta2: mean 0.5647 | cell=0.745 tumo=0.591 size=0.504 elon=0.562 disp=0.421
+[ptest] A_tta4: mean 0.5663 | cell=0.742 tumo=0.591 size=0.507 elon=0.561 disp=0.431
+done in 25.7 min

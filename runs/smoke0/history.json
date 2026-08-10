@@ -1,0 +1,24 @@
+[
+ {
+  "epoch": 0,
+  "mean_tau": 0.026153846153846156,
+  "cellularity": 0.10512820512820513,
+  "tumor_frac": 0.0,
+  "size_spread": 0.0025641025641025645,
+  "elongation": 0.023076923076923078,
+  "dispersion": 0.0,
+  "alt_ss": 0.0,
+  "alt_el": 0.0
+ },
+ {
+  "epoch": 1,
+  "mean_tau": 0.03072587011833868,
+  "cellularity": 0.0,
+  "tumor_frac": 0.022860119822462638,
+  "size_spread": 0.0717948717948718,
+  "elongation": 0.05897435897435897,
+  "dispersion": 0.0,
+  "alt_ss": 0.0,
+  "alt_el": 0.0
+ }
+]

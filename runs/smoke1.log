@@ -1,0 +1,4 @@
+train 1142 tiles / val 216 tiles (79 vs 14 slides)
+loading images...
+loaded 1358 images in 10s
+ep 00 dens 0.0396 cnt 7.571 heat 0.0615 attr 4.646 lr 2.90e-04 0.8m

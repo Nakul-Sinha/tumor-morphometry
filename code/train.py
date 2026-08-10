@@ -99,7 +99,7 @@ def main():
 
     ds = CropDataset(images, cells_by, tr_ids, crops_per_image=args.cpi, train=True, seed=args.seed)
     dl = DataLoader(ds, batch_size=args.bs, shuffle=True, num_workers=args.workers,
-                    pin_memory=(device == "cuda"), drop_last=True,
+                    pin_memory=False, drop_last=True,
                     persistent_workers=(args.workers > 0))
 
     model = UNetR18(pretrained=not args.no_pretrained).to(device)

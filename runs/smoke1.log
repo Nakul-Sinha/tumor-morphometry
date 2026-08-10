@@ -2,3 +2,11 @@ train 1142 tiles / val 216 tiles (79 vs 14 slides)
 loading images...
 loaded 1358 images in 10s
 ep 00 dens 0.0396 cnt 7.571 heat 0.0615 attr 4.646 lr 2.90e-04 0.8m
+ep 01 dens 0.0203 cnt 4.014 heat 0.0265 attr 2.883 lr 2.60e-04 1.4m | VAL mean_tau 0.3387 cell=0.663 tumo=0.612 size=0.000 elon=0.253 disp=0.166 altss=0.049 alte=0.347 *
+ep 02 dens 0.0175 cnt 3.669 heat 0.0239 attr 1.728 lr 2.17e-04 2.1m
+ep 03 dens 0.0159 cnt 3.501 heat 0.0230 attr 1.236 lr 1.65e-04 2.7m | VAL mean_tau 0.4059 cell=0.678 tumo=0.611 size=0.077 elon=0.411 disp=0.253 altss=0.200 alte=0.464 *
+ep 04 dens 0.0151 cnt 3.358 heat 0.0223 attr 1.011 lr 1.13e-04 3.3m
+ep 05 dens 0.0146 cnt 3.219 heat 0.0218 attr 0.893 lr 6.95e-05 3.8m | VAL mean_tau 0.4412 cell=0.741 tumo=0.668 size=0.108 elon=0.455 disp=0.234 altss=0.235 alte=0.454 *
+ep 06 dens 0.0143 cnt 3.140 heat 0.0213 attr 0.811 lr 4.03e-05 4.4m
+ep 07 dens 0.0144 cnt 3.108 heat 0.0212 attr 0.789 lr 3.00e-05 5.0m | VAL mean_tau 0.4519 cell=0.765 tumo=0.673 size=0.128 elon=0.502 disp=0.191 altss=0.258 alte=0.469 *
+BEST val mean_tau 0.4519  (5.0 min total)

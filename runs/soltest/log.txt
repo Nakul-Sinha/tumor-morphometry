@@ -1,0 +1,13 @@
+device=cuda threads=12
+loading train images...
+loaded 1358 train images (0.2m)
+[A] ep 00 loss 4.0499 (3s/ep, 0.3m)
+[A] ep 01 loss 3.7422 (1s/ep, 0.4m) VAL 0.0267 cell=0.000 tumo=0.000 size=0.000 elon=0.000 disp=0.133 *
+[A] best val mean_tau 0.0267
+[B] ep 00 loss 3.8167 (2s/ep, 0.4m)
+[B] ep 01 loss 3.2954 (2s/ep, 0.4m) VAL 0.0703 cell=0.000 tumo=0.000 size=0.200 elon=0.062 disp=0.090 *
+[B] best val mean_tau 0.0703
+[select] size_spread: primary 0.0000 vs alt 0.0000 -> primary
+[select] elongation: primary 0.0000 vs alt 0.0000 -> primary
+test inference on 384 tiles (0.5m)...
+wrote runs\soltest\submission.csv (384 rows) at 0.5 min

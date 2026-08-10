@@ -7,3 +7,14 @@ ep 02 dens 0.0147 cnt 3.416 heat 0.0223 attr 0.784 lr 2.96e-04 3.5m | VAL mean_t
 ep 03 dens 0.0139 cnt 3.248 heat 0.0215 attr 0.622 lr 2.93e-04 4.6m
 ep 04 dens 0.0136 cnt 3.201 heat 0.0212 attr 0.560 lr 2.90e-04 5.7m
 ep 05 dens 0.0132 cnt 3.069 heat 0.0208 attr 0.522 lr 2.85e-04 7.0m | VAL mean_tau 0.4783 cell=0.711 tumo=0.675 size=0.225 elon=0.469 disp=0.312 altss=0.314 alte=0.460 *
+ep 06 dens 0.0131 cnt 3.011 heat 0.0205 attr 0.502 lr 2.80e-04 8.1m
+ep 07 dens 0.0130 cnt 3.023 heat 0.0204 attr 0.483 lr 2.74e-04 9.2m
+ep 08 dens 0.0129 cnt 2.951 heat 0.0203 attr 0.478 lr 2.68e-04 10.2m | VAL mean_tau 0.4651 cell=0.756 tumo=0.656 size=0.197 elon=0.441 disp=0.276 altss=0.295 alte=0.440
+ep 09 dens 0.0127 cnt 2.856 heat 0.0201 attr 0.461 lr 2.60e-04 11.4m
+ep 10 dens 0.0125 cnt 2.855 heat 0.0200 attr 0.457 lr 2.53e-04 12.4m
+ep 11 dens 0.0124 cnt 2.814 heat 0.0199 attr 0.454 lr 2.44e-04 13.5m | VAL mean_tau 0.5007 cell=0.740 tumo=0.632 size=0.250 elon=0.507 disp=0.375 altss=0.205 alte=0.521 *
+ep 12 dens 0.0122 cnt 2.773 heat 0.0198 attr 0.445 lr 2.36e-04 14.7m
+ep 13 dens 0.0121 cnt 2.791 heat 0.0198 attr 0.441 lr 2.26e-04 15.8m
+ep 14 dens 0.0119 cnt 2.725 heat 0.0196 attr 0.435 lr 2.17e-04 16.8m | VAL mean_tau 0.4598 cell=0.758 tumo=0.661 size=0.168 elon=0.394 disp=0.318 altss=0.191 alte=0.436
+ep 15 dens 0.0119 cnt 2.697 heat 0.0194 attr 0.435 lr 2.07e-04 18.0m
+ep 16 dens 0.0116 cnt 2.607 heat 0.0193 attr 0.429 lr 1.97e-04 19.1m

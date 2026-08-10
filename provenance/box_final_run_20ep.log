@@ -1,0 +1,37 @@
+device=cpu threads=10
+loading train images...
+loaded 1358 train images (0.1m)
+[A] ep 00 loss 1.1079 (146s/ep, 2.5m)
+[A] ep 01 loss 0.5109 (227s/ep, 6.3m)
+[A] ep 02 loss 0.4294 (174s/ep, 9.2m) VAL 0.4456 cell=0.669 tumo=0.631 size=0.217 elon=0.441 disp=0.269 *
+[A] ep 03 loss 0.3705 (158s/ep, 11.8m)
+[A] ep 04 loss 0.2779 (160s/ep, 14.5m)
+[A] ep 05 loss 0.2874 (184s/ep, 17.6m) VAL 0.5073 cell=0.755 tumo=0.655 size=0.298 elon=0.443 disp=0.386 *
+[A] ep 06 loss 0.2629 (186s/ep, 20.7m)
+[A] ep 07 loss 0.2795 (166s/ep, 23.4m)
+[A] ep 08 loss 0.2530 (203s/ep, 26.8m) VAL 0.5235 cell=0.746 tumo=0.613 size=0.328 elon=0.500 disp=0.430 *
+[A] ep 09 loss 0.2387 (227s/ep, 30.6m)
+[A] ep 10 loss 0.2214 (225s/ep, 34.3m)
+[A] ep 11 loss 0.2123 (224s/ep, 38.1m) VAL 0.5253 cell=0.773 tumo=0.633 size=0.337 elon=0.457 disp=0.427 *
+[A] ep 12 loss 0.1986 (222s/ep, 41.8m)
+[A] ep 13 loss 0.1873 (206s/ep, 45.2m)
+[A] ep 14 loss 0.1885 (208s/ep, 48.7m) VAL 0.5402 cell=0.756 tumo=0.670 size=0.349 elon=0.502 disp=0.425 *
+[A] ep 15 loss 0.1989 (205s/ep, 52.1m)
+[A] ep 16 loss 0.1428 (180s/ep, 55.1m)
+[A] ep 17 loss 0.1473 (223s/ep, 58.8m) VAL 0.5313 cell=0.765 tumo=0.661 size=0.335 elon=0.470 disp=0.424
+[A] ep 18 loss 0.1282 (237s/ep, 62.7m) VAL 0.5412 cell=0.770 tumo=0.663 size=0.330 elon=0.480 disp=0.462 *
+[A] ep 19 loss 0.1438 (170s/ep, 65.6m) VAL 0.5366 cell=0.779 tumo=0.666 size=0.332 elon=0.479 disp=0.427
+[A] best val mean_tau 0.5412
+[select] cthr=0.0001: val mean_tau 0.4948
+[select] cthr=0.0002: val mean_tau 0.5249
+[select] cthr=0.0003: val mean_tau 0.5412
+[select] cthr=0.0005: val mean_tau 0.5448
+[select] chose cthr=0.0005
+[select] size_spread: primary 0.3634 vs alt 0.3914 -> alt
+[select] elongation: primary 0.4787 vs alt 0.5011 -> alt
+test inference on 384 tiles (65.8m)...
+[budget] per-tile 0.09s allowed 2.28s -> tta=4 models=1
+  100/384 (65.9m)
+  200/384 (66.2m)
+  300/384 (66.3m)
+wrote /home/ec2-user/final_out/submission.csv (384 rows) at 66.4 min

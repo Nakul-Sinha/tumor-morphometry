@@ -141,12 +141,11 @@ def decode_tile(dens, heat, amap, emap, H, W, stride=STRIDE,
     out["cellularity"] = 1e5 * n_hat / (W * H)
     out["tumor_frac"] = float(per_class[0] / (n_hat + 1e-6))
 
+    # fail-closed: only confident peaks count; per-target fallbacks otherwise
     k = int(max(5, round(n_hat)))
     ys, xs, scores = nms_peaks(heat, k)
-    # keep peaks with a minimal score to avoid reading noise floor
     keep = scores > 0.05
-    if keep.sum() >= 3:
-        ys, xs, scores = ys[keep], xs[keep], scores[keep]
+    ys, xs, scores = ys[keep], xs[keep], scores[keep]
     kk = len(ys)
 
     ts = train_stats or {}

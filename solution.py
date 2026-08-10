@@ -5,19 +5,22 @@ is trained IN THIS SCRIPT on the provided tiles + per-cell annotations to predic
   - 4 class density maps (sum-normalized Gaussians -> channel integral = class count)
   - 1 center heatmap (adaptive-sigma Gaussians, for peak decoding)
   - 2 attribute maps (log-area, elongation painted in disks at cell centers)
-The five targets are then computed from the predicted maps with the EXACT arithmetic
-of the label generation (verified tau>=0.9999 on train):
-  cellularity = 1e5 * N / (W*H)          N = density integral
+The five population properties are then computed from the predicted maps using
+their standard morphometric definitions (all consistent with the provided
+train_targets to tau>=0.9999):
+  cellularity = cells per 100,000 px^2 = 1e5 * N / (W*H),  N = density integral
   tumor_frac  = N_tumor / N
-  size_spread = population CV of per-cell area (cells = decoded peaks)
+  size_spread = coefficient of variation (population) of per-cell area
   elongation  = mean per-cell elongation
-  dispersion  = Clark-Evans ratio in pixel coords: mean_NN_px * 2*sqrt(N/(W*H))
+  dispersion  = Clark-Evans nearest-neighbour index, R = mean_NN / (0.5/sqrt(N/A)),
+                computed in pixel coordinates (A = W*H)
 
 Validation inside the script: slide-grouped holdout (GroupShuffleSplit on `group`),
 checkpoint selection and estimator selection by the actual metric (mean clipped
 Kendall tau) on held-out slides. Strictly per-sample test inference (flip TTA only).
 
 Usage: python3 solution.py <public_dir> <submission_out>
+       python3 solution.py            (falls back to dataset/ -> working/submission.csv)
 """
 import os
 import random
@@ -50,10 +53,11 @@ def _env(name, default, cast):
 
 
 # ---- FIXED CPU RECIPE (reference env: 10 CPU cores, 62GB RAM, 90-min limit) ----
-# Measured on a 10-core-pinned Zen5 box: 158 s/epoch, ~0.1 s/tile forward.
-# 20 epochs x 4 crops/image + val every 3 + TTA4 inference ~= 63-65 min wall.
+# Measured on a 10-core-pinned Zen5 box under real load: ~170-220 s/epoch,
+# ~0.1 s/tile forward. 16 epochs x 4 crops/image + val every 3 + TTA4
+# inference ~= 55 min wall, leaving ~35 min headroom for slower silicon.
 SEED = 42
-EPOCHS = _env("CH2_EPOCHS", 20, int)
+EPOCHS = _env("CH2_EPOCHS", 16, int)
 CPI = _env("CH2_CPI", 4, int)                       # crops per image per epoch
 BATCH = 16
 LR = 3e-4
@@ -65,6 +69,7 @@ TRAIN_STOP_MIN = _env("CH2_TRAIN_STOP_MIN", 68.0, float)
 TOTAL_BUDGET_MIN = _env("CH2_TOTAL_BUDGET_MIN", 82.0, float)
 MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 68.0, float)
 TWO_MODELS = _env("CH2_TWO_MODELS", 0, int)         # single model A (CPU budget)
+PRETRAINED = _env("CH2_PRETRAINED", 1, int)         # ImageNet encoder init
 SUBSET = _env("CH2_SUBSET", 0, int)                 # dev-only: limit train tiles
 TTA = _env("CH2_TTA", 4, int)
 LIMIT_TEST = _env("CH2_LIMIT_TEST", 0, int)         # dev-only: limit test tiles
@@ -194,11 +199,12 @@ def decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=DENS_THR):
     out["cellularity"] = 1e5 * n_hat / (W * H)
     out["tumor_frac"] = float(per_class[0] / (n_hat + 1e-6))
 
+    # fail-closed peak selection: only confident peaks count; if too few,
+    # the per-target fallbacks below use train statistics instead of junk.
     k = int(max(5, round(n_hat)))
     ys, xs, scores = nms_peaks(heat, k)
     keep = scores > 0.05
-    if keep.sum() >= 3:
-        ys, xs, scores = ys[keep], xs[keep], scores[keep]
+    ys, xs, scores = ys[keep], xs[keep], scores[keep]
     kk = len(ys)
 
     ts = train_stats
@@ -321,12 +327,18 @@ class UNetR18(nn.Module):
     def __init__(self, out_ch=7, pretrained=True):
         super().__init__()
         import torchvision
-        try:
-            w = torchvision.models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
-            enc = torchvision.models.resnet18(weights=w)
-        except Exception as e:
-            print(f"[model] pretrained download failed ({e}); random init", flush=True)
+        if pretrained:
+            try:
+                enc = torchvision.models.resnet18(
+                    weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
+                print("[model] encoder init: ImageNet pretrained", flush=True)
+            except Exception as e:
+                print(f"[model] PRETRAINED FETCH FAILED ({e}) -> RANDOM INIT "
+                      f"(untested-config warning)", flush=True)
+                enc = torchvision.models.resnet18(weights=None)
+        else:
             enc = torchvision.models.resnet18(weights=None)
+            print("[model] encoder init: random (from-scratch)", flush=True)
         self.stem = nn.Sequential(enc.conv1, enc.bn1, enc.relu)
         self.pool = enc.maxpool
         self.l1, self.l2, self.l3, self.l4 = enc.layer1, enc.layer2, enc.layer3, enc.layer4
@@ -337,7 +349,7 @@ class UNetR18(nn.Module):
     def forward(self, x):
         c1 = self.stem(x)
         c2 = self.l1(self.pool(c1))
-        c3, c4, c5 = self.l2(c2), None, None
+        c3 = self.l2(c2)
         c4 = self.l3(c3)
         c5 = self.l4(c4)
         u = F.interpolate(c5, size=c4.shape[-2:], mode="bilinear", align_corners=False)
@@ -411,7 +423,7 @@ def train_one(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
     dl = DataLoader(ds, batch_size=BATCH, shuffle=True, num_workers=workers,
                     pin_memory=False, drop_last=True, generator=gen,
                     persistent_workers=(workers > 0))
-    model = UNetR18(pretrained=True).to(DEVICE)
+    model = UNetR18(pretrained=bool(PRETRAINED)).to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD)
     iters = max(1, len(dl))
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs * iters,
@@ -471,10 +483,31 @@ def train_one(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
 
 
 # ----------------------------- main -----------------------------
+def _resolve_paths():
+    """Support both invocation styles:
+    new: python3 solution.py <public_dir> <submission_out>
+    old: python3 solution.py            (dataset/public -> working/submission.csv)"""
+    if len(sys.argv) > 1:
+        public_dir = Path(sys.argv[1])
+    else:
+        public_dir = None
+        for cand in [Path("dataset/public"), Path("dataset"), Path("public"),
+                     Path("../dataset/public"), Path(".")]:
+            if (cand / "train_targets.csv").exists():
+                public_dir = cand
+                break
+        if public_dir is None:
+            raise FileNotFoundError(
+                "no <public_dir> argument and no standard mount with train_targets.csv")
+    submission_out = Path(sys.argv[2]) if len(sys.argv) > 2 \
+        else Path("working") / "submission.csv"
+    return public_dir, submission_out
+
+
 def main():
-    public_dir = Path(sys.argv[1])
-    submission_out = Path(sys.argv[2])
+    public_dir, submission_out = _resolve_paths()
     submission_out.parent.mkdir(parents=True, exist_ok=True)
+    print(f"public_dir={public_dir} submission_out={submission_out}", flush=True)
     print(f"device={DEVICE} threads={torch.get_num_threads()}", flush=True)
 
     targets = pd.read_csv(public_dir / "train_targets.csv")
@@ -554,7 +587,7 @@ def main():
         return pd.DataFrame(rows).set_index("image_id").loc[va_a]
 
     best_cthr, best_ct_tau, va_pred = DENS_THR, -1.0, None
-    for cthr in [1e-4, 2e-4, 3e-4, 5e-4]:
+    for cthr in [1e-4, 2e-4, 3e-4, 5e-4, 8e-4, 1.2e-3]:
         p = decode_val(cthr)
         mt, _ = morph_score(p, gt_val)
         print(f"[select] cthr={cthr:g}: val mean_tau {mt:.4f}", flush=True)

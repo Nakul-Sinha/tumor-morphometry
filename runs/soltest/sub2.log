@@ -1,0 +1,15 @@
+device=cpu threads=12
+loading train images...
+loaded 1358 train images (0.2m)
+[A] ep 00 loss 4.9176 (5s/ep, 0.3m) VAL 0.1698 cell=0.323 tumo=0.526 size=0.000 elon=0.000 disp=0.000 *
+[A] best val mean_tau 0.1698
+[select] cthr=0.0001: val mean_tau 0.1708
+[select] cthr=0.0002: val mean_tau 0.1708
+[select] cthr=0.0003: val mean_tau 0.1698
+[select] cthr=0.0005: val mean_tau 0.1319
+[select] chose cthr=0.0001
+[select] size_spread: primary 0.0000 vs alt 0.0000 -> primary
+[select] elongation: primary 0.0000 vs alt 0.0000 -> primary
+test inference on 384 tiles (0.5m)...
+[budget] per-tile 0.44s allowed 570.39s -> tta=4 models=1
+wrote runs\soltest\sub2.csv (384 rows) at 0.6 min

@@ -58,6 +58,7 @@ WD = 1e-4
 VAL_EVERY = 3
 CROP = 256
 TRAIN_STOP_MIN = _env("CH2_TRAIN_STOP_MIN", 55.0, float)   # all training ends here
+TOTAL_BUDGET_MIN = _env("CH2_TOTAL_BUDGET_MIN", 85.0, float)  # whole-script wall budget
 MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 33.0, float)
 TWO_MODELS = _env("CH2_TWO_MODELS", 1, int)
 SUBSET = _env("CH2_SUBSET", 0, int)                 # dev-only: limit train tiles
@@ -76,7 +77,11 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-torch.set_num_threads(max(4, os.cpu_count() or 4))
+try:
+    _N_CPU = len(os.sched_getaffinity(0))  # respects core pinning (Linux)
+except AttributeError:
+    _N_CPU = os.cpu_count() or 4
+torch.set_num_threads(max(4, _N_CPU))
 
 
 # ----------------------------- metric -----------------------------
@@ -567,10 +572,33 @@ def main():
     q_iter = list(queries["query_id"])
     if LIMIT_TEST:
         q_iter = q_iter[:LIMIT_TEST]
+    # adaptive budget: measure per-tile cost on first tiles, degrade TTA/models
+    # if the projection exceeds the remaining wall budget (per-sample only).
+    tta_use, models_use = TTA, models
+    probe_n = min(4, len(q_iter))
+    tp0 = time.time()
+    for qid in q_iter[:probe_n]:
+        with Image.open(public_dir / "test_images" / f"{qid}.png") as im:
+            img = np.asarray(im.convert("RGB"))
+        predict_tile_multi(models_use, img, train_stats, tta=tta_use, cthr=best_cthr)
+    cost = (time.time() - tp0) / max(probe_n, 1)
+    remain_s = max((TOTAL_BUDGET_MIN - elapsed_min()) * 60.0, 60.0)
+    allowed = 0.9 * remain_s / max(len(q_iter), 1)
+    if cost > allowed and tta_use > 2:
+        tta_use = 2
+        cost /= 2
+    if cost > allowed and tta_use > 1:
+        tta_use = 1
+        cost /= 2
+    if cost > allowed and len(models_use) > 1:
+        models_use = models_use[:1]
+        cost /= 2
+    print(f"[budget] per-tile {cost:.2f}s allowed {allowed:.2f}s -> "
+          f"tta={tta_use} models={len(models_use)}", flush=True)
     for i, qid in enumerate(q_iter):
         with Image.open(public_dir / "test_images" / f"{qid}.png") as im:
             img = np.asarray(im.convert("RGB"))
-        d = predict_tile_multi(models, img, train_stats, tta=TTA, cthr=best_cthr)
+        d = predict_tile_multi(models_use, img, train_stats, tta=tta_use, cthr=best_cthr)
         rec = {"id": qid}
         for c in COLS:
             key = f"{c}_alt" if use_alt.get(c, False) else c

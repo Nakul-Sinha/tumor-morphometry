@@ -1,0 +1,7 @@
+loading images...
+inner 956 tiles / pseudo-test 402 tiles
+[A] ep 00 loss 1.4313 (44s/ep, 1.0m)
+[A] ep 01 loss 0.7780 (42s/ep, 1.7m)
+[A] ep 02 loss 0.5135 (40s/ep, 2.4m) VAL 0.4891 cell=0.664 tumo=0.639 size=0.304 elon=0.492 disp=0.347 *
+[A] ep 03 loss 0.4058 (47s/ep, 3.2m)
+[A] ep 04 loss 0.4247 (42s/ep, 3.9m)

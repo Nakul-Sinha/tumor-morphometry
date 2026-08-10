@@ -105,6 +105,18 @@ def decode_variant(dens, heat, amap, emap, H, W, ts, nms_thr=0.05, kmul=1.0,
     else:
         out["size_spread"] = ts["size_spread_med"]
         out["elongation"] = ts["elongation_med"]
+
+    # peak-based alternates for count-derived targets
+    out["cellularity_pk"] = 1e5 * kk / (W * H)
+    if kk >= 1:
+        cls_at_pk = np.stack([_sample3(dens[c], ys, xs) for c in range(4)])  # (4,kk)
+        votes = cls_at_pk.argmax(axis=0)
+        out["tumor_frac_pk"] = float((votes == 0).mean())
+        wsum = cls_at_pk.sum(axis=0) + 1e-9
+        out["tumor_frac_soft"] = float((cls_at_pk[0] / wsum).mean())
+    else:
+        out["tumor_frac_pk"] = out["tumor_frac"]
+        out["tumor_frac_soft"] = out["tumor_frac"]
     return out
 
 
@@ -122,13 +134,7 @@ def sweep(args):
     ids = [c[0] for c in cache]
     gt = targets.loc[ids]
 
-    variants = []
-    for ct_ in [2e-4, 3e-4, 4e-4, 5e-4]:
-        for km in [0.85, 1.0]:
-            variants.append(dict(count_mode="thr", cthr=ct_, kmul=km))
-    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=1.0, nms_thr=0.15))
-    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=1.0, nms_thr=0.25))
-    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=0.9))
+    variants = [dict(count_mode="thr", cthr=3e-4, kmul=1.0)]
 
     for v in variants:
         rows = []
@@ -140,6 +146,11 @@ def sweep(args):
         mean_tau, per = morphometry_score(pred, gt)
         print(f"{v}: mean {mean_tau:.4f} | " +
               " ".join(f"{c[:4]}={per[c]:.3f}" for c in COLS), flush=True)
+        for alt_col, base in [("cellularity_pk", "cellularity"),
+                              ("tumor_frac_pk", "tumor_frac"),
+                              ("tumor_frac_soft", "tumor_frac")]:
+            print(f"    {alt_col}: tau {ct(pred[alt_col].values, gt[base].values):.4f} "
+                  f"(base {ct(pred[base].values, gt[base].values):.4f})", flush=True)
 
 
 if __name__ == "__main__":

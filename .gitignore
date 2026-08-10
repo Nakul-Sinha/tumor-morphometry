@@ -1,0 +1,10 @@
+dataset/
+*.zip
+*.npy
+*.png
+__pycache__/
+*.csv
+!submission.csv
+!sample_submission.csv
+venv/
+.cache/

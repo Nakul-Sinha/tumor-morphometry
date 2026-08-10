@@ -35,6 +35,7 @@ def main():
     ap.add_argument("--tta", type=int, default=4)
     ap.add_argument("--stop-a", type=float, default=90.0)
     ap.add_argument("--stop-all", type=float, default=180.0)
+    ap.add_argument("--single", action="store_true", help="model A only (CPU recipe)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -92,13 +93,16 @@ def main():
     torch.save({"model": model_a.state_dict(), "mean_tau": tau_a, "epoch": -1},
                out / "sim_A.pt")
     models = [model_a]
-    tr_b, va_b = split(S.SEED + 1)
-    model_b, tau_b = S.train_one(images, cells_by, tr_b, va_b, targets, train_stats,
-                                 S.SEED + 1, stop_min=args.stop_all, epochs=args.epochs, tag="B")
-    torch.save({"model": model_b.state_dict(), "mean_tau": tau_b, "epoch": -1},
-               out / "sim_B.pt")
-    if tau_b > 0.25:
-        models.append(model_b)
+    model_b, tau_b = None, -1.0
+    if not args.single:
+        tr_b, va_b = split(S.SEED + 1)
+        model_b, tau_b = S.train_one(images, cells_by, tr_b, va_b, targets, train_stats,
+                                     S.SEED + 1, stop_min=args.stop_all,
+                                     epochs=args.epochs, tag="B")
+        torch.save({"model": model_b.state_dict(), "mean_tau": tau_b, "epoch": -1},
+                   out / "sim_B.pt")
+        if tau_b > 0.25:
+            models.append(model_b)
 
     # cthr + estimator selection on A's val (mirrors solution.py)
     va_maps = {}
@@ -147,9 +151,11 @@ def main():
 
     gt_p = targets.set_index("image_id").loc[ptest_ids]
     results = {}
-    for name, mods, tta in [("A_tta1", [model_a], 1), ("A_tta4", [model_a], args.tta),
-                            ("B_tta4", [model_b], args.tta),
-                            ("ENS_tta4", models, args.tta)]:
+    configs = [("A_tta1", [model_a], 1), ("A_tta2", [model_a], 2),
+               ("A_tta4", [model_a], args.tta)]
+    if model_b is not None:
+        configs += [("B_tta4", [model_b], args.tta), ("ENS_tta4", models, args.tta)]
+    for name, mods, tta in configs:
         pred = infer(mods, tta)
         mean_tau, per = morphometry_score(pred, gt_p)
         results[name] = {"mean": mean_tau, **per}

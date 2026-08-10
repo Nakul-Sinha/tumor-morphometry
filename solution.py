@@ -49,18 +49,22 @@ def _env(name, default, cast):
         return default
 
 
+# ---- FIXED CPU RECIPE (reference env: 10 CPU cores, 62GB RAM, 90-min limit) ----
+# Measured on a 10-core-pinned Zen5 box: 158 s/epoch, ~0.1 s/tile forward.
+# 20 epochs x 4 crops/image + val every 3 + TTA4 inference ~= 63-65 min wall.
 SEED = 42
-EPOCHS = _env("CH2_EPOCHS", 40, int)
+EPOCHS = _env("CH2_EPOCHS", 20, int)
 CPI = _env("CH2_CPI", 4, int)                       # crops per image per epoch
 BATCH = 16
 LR = 3e-4
 WD = 1e-4
 VAL_EVERY = 3
 CROP = 256
-TRAIN_STOP_MIN = _env("CH2_TRAIN_STOP_MIN", 55.0, float)   # all training ends here
-TOTAL_BUDGET_MIN = _env("CH2_TOTAL_BUDGET_MIN", 85.0, float)  # whole-script wall budget
-MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 33.0, float)
-TWO_MODELS = _env("CH2_TWO_MODELS", 1, int)
+# Emergency-only wall-clock guards: must NEVER fire on reference hardware.
+TRAIN_STOP_MIN = _env("CH2_TRAIN_STOP_MIN", 68.0, float)
+TOTAL_BUDGET_MIN = _env("CH2_TOTAL_BUDGET_MIN", 82.0, float)
+MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 68.0, float)
+TWO_MODELS = _env("CH2_TWO_MODELS", 0, int)         # single model A (CPU budget)
 SUBSET = _env("CH2_SUBSET", 0, int)                 # dev-only: limit train tiles
 TTA = _env("CH2_TTA", 4, int)
 LIMIT_TEST = _env("CH2_LIMIT_TEST", 0, int)         # dev-only: limit test tiles
@@ -76,12 +80,13 @@ COLS = ["cellularity", "tumor_frac", "size_spread", "elongation", "dispersion"]
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# CPU is THE reference device (identical behavior everywhere; no cuda branch).
+DEVICE = "cpu"
 try:
     _N_CPU = len(os.sched_getaffinity(0))  # respects core pinning (Linux)
 except AttributeError:
     _N_CPU = os.cpu_count() or 4
-torch.set_num_threads(max(4, _N_CPU))
+torch.set_num_threads(min(10, max(1, _N_CPU)))
 
 
 # ----------------------------- metric -----------------------------
@@ -401,15 +406,15 @@ def train_one(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
     np.random.seed(seed)
     ds = CropDataset(images, cells_by, tr_ids, CPI, seed)
     workers = 2 if (os.name == "posix") else 0
+    gen = torch.Generator().manual_seed(seed)
     dl = DataLoader(ds, batch_size=BATCH, shuffle=True, num_workers=workers,
-                    pin_memory=False, drop_last=True,
+                    pin_memory=False, drop_last=True, generator=gen,
                     persistent_workers=(workers > 0))
     model = UNetR18(pretrained=True).to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD)
     iters = max(1, len(dl))
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs * iters,
                                                        eta_min=LR / 10)
-    scaler = torch.amp.GradScaler(enabled=(DEVICE == "cuda"))
     gt_val = targets.set_index("image_id").loc[va_ids]
 
     best_tau, best_state = -1.0, None
@@ -422,21 +427,18 @@ def train_one(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
         ds.set_epoch(ep)
         model.train()
         for x, tgt, counts in dl:
-            x, tgt, counts = x.to(DEVICE), tgt.to(DEVICE), counts.to(DEVICE)
-            with torch.amp.autocast(device_type="cuda", enabled=(DEVICE == "cuda")):
-                pred = model(x)
-                l_dens = F.mse_loss(pred[:, :4], tgt[:, :4])
-                l_cnt = F.l1_loss(pred[:, :4].sum(dim=(2, 3)) / DENS_SCALE, counts)
-                l_heat = F.mse_loss(pred[:, 4], tgt[:, 4])
-                mask = (tgt[:, 5] > 0.5).float()
-                msum = mask.sum() + 1e-6
-                l_a = (torch.abs(pred[:, 5] - tgt[:, 5]) * mask).sum() / msum
-                l_e = (torch.abs(pred[:, 6] - tgt[:, 6]) * mask).sum() / msum
-                loss = l_dens + 0.01 * l_cnt + l_heat + 0.5 * (l_a + l_e)
+            pred = model(x)
+            l_dens = F.mse_loss(pred[:, :4], tgt[:, :4])
+            l_cnt = F.l1_loss(pred[:, :4].sum(dim=(2, 3)) / DENS_SCALE, counts)
+            l_heat = F.mse_loss(pred[:, 4], tgt[:, 4])
+            mask = (tgt[:, 5] > 0.5).float()
+            msum = mask.sum() + 1e-6
+            l_a = (torch.abs(pred[:, 5] - tgt[:, 5]) * mask).sum() / msum
+            l_e = (torch.abs(pred[:, 6] - tgt[:, 6]) * mask).sum() / msum
+            loss = l_dens + 0.01 * l_cnt + l_heat + 0.5 * (l_a + l_e)
             opt.zero_grad(set_to_none=True)
-            scaler.scale(loss).backward()
-            scaler.step(opt)
-            scaler.update()
+            loss.backward()
+            opt.step()
             sched.step()
         do_val = (ep % VAL_EVERY == VAL_EVERY - 1) or (ep == epochs - 1) \
             or (elapsed_min() > stop_min * 0.92)

@@ -1,1 +1,28 @@
 loading images...
+loaded sim_A.pt (val 0.5726)
+[B] ep 00 loss 1.0128 (49s/ep, 1.1m)
+[B] ep 01 loss 0.5551 (48s/ep, 1.9m)
+[B] ep 02 loss 0.5277 (46s/ep, 2.7m) VAL 0.4068 cell=0.581 tumo=0.603 size=0.246 elon=0.313 disp=0.291 *
+[B] ep 03 loss 0.3037 (50s/ep, 3.5m)
+[B] ep 04 loss 0.3473 (48s/ep, 4.3m)
+[B] ep 05 loss 0.2999 (48s/ep, 5.1m) VAL 0.4056 cell=0.523 tumo=0.576 size=0.261 elon=0.376 disp=0.292
+[B] ep 06 loss 0.3030 (48s/ep, 5.9m)
+[B] ep 07 loss 0.3180 (46s/ep, 6.7m)
+[B] ep 08 loss 0.3793 (44s/ep, 7.4m) VAL 0.4309 cell=0.600 tumo=0.606 size=0.278 elon=0.401 disp=0.270 *
+[B] ep 09 loss 0.3032 (59s/ep, 8.4m)
+[B] ep 10 loss 0.2914 (45s/ep, 9.1m)
+[B] ep 11 loss 0.3013 (44s/ep, 9.9m) VAL 0.4457 cell=0.596 tumo=0.634 size=0.335 elon=0.351 disp=0.311 *
+[B] ep 12 loss 0.2847 (56s/ep, 10.8m)
+[B] ep 13 loss 0.2924 (64s/ep, 11.9m)
+[B] ep 14 loss 0.2672 (64s/ep, 12.9m) VAL 0.4938 cell=0.635 tumo=0.643 size=0.393 elon=0.416 disp=0.381 *
+[B] ep 15 loss 0.3056 (67s/ep, 14.1m)
+[B] ep 16 loss 0.2951 (64s/ep, 15.1m)
+[B] ep 17 loss 0.2923 (63s/ep, 16.2m) VAL 0.4808 cell=0.621 tumo=0.645 size=0.328 elon=0.426 disp=0.384
+[B] ep 18 loss 0.2718 (68s/ep, 17.3m)
+[B] ep 19 loss 0.2705 (63s/ep, 18.4m)
+[B] ep 20 loss 0.2408 (63s/ep, 19.4m) VAL 0.4807 cell=0.675 tumo=0.642 size=0.310 elon=0.378 disp=0.399
+[B] ep 21 loss 0.2724 (66s/ep, 20.5m)
+[B] ep 22 loss 0.2862 (58s/ep, 21.5m)
+[B] ep 23 loss 0.2844 (45s/ep, 22.2m) VAL 0.4838 cell=0.664 tumo=0.666 size=0.352 elon=0.397 disp=0.341
+[B] ep 24 loss 0.2542 (51s/ep, 23.1m)
+[B] ep 25 loss 0.2392 (70s/ep, 24.2m)

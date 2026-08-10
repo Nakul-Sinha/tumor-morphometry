@@ -10,3 +10,28 @@ loaded 1358 train images (0.2m)
 [A] ep 06 loss 0.2948 (82s/ep, 9.0m)
 [A] ep 07 loss 0.3231 (63s/ep, 10.0m)
 [A] ep 08 loss 0.2795 (65s/ep, 11.1m) VAL 0.5213 cell=0.745 tumo=0.655 size=0.322 elon=0.478 disp=0.406 *
+[A] ep 09 loss 0.2654 (71s/ep, 12.3m)
+[A] ep 10 loss 0.3031 (56s/ep, 13.3m)
+[A] ep 11 loss 0.2864 (64s/ep, 14.3m) VAL 0.5389 cell=0.750 tumo=0.683 size=0.324 elon=0.508 disp=0.429 *
+[A] ep 12 loss 0.3075 (65s/ep, 15.4m)
+[A] ep 13 loss 0.2905 (63s/ep, 16.5m)
+[A] ep 14 loss 0.2386 (57s/ep, 17.4m) VAL 0.5441 cell=0.754 tumo=0.680 size=0.342 elon=0.523 disp=0.422 *
+[A] ep 15 loss 0.2791 (86s/ep, 18.8m)
+[A] ep 16 loss 0.2738 (89s/ep, 20.3m)
+[A] ep 17 loss 0.2493 (85s/ep, 21.7m) VAL 0.5278 cell=0.774 tumo=0.627 size=0.320 elon=0.494 disp=0.423
+[A] ep 18 loss 0.2978 (82s/ep, 23.1m)
+[A] ep 19 loss 0.2818 (70s/ep, 24.3m) VAL 0.5242 cell=0.742 tumo=0.689 size=0.295 elon=0.503 disp=0.391
+[A] best val mean_tau 0.5441
+[select] cthr=0.0001: val mean_tau 0.5060
+[select] cthr=0.0002: val mean_tau 0.5231
+[select] cthr=0.0003: val mean_tau 0.5441
+[select] cthr=0.0005: val mean_tau 0.5510
+[select] chose cthr=0.0005
+[select] size_spread: primary 0.3764 vs alt 0.3403 -> primary
+[select] elongation: primary 0.4984 vs alt 0.4922 -> primary
+test inference on 384 tiles (24.5m)...
+[budget] per-tile 0.16s allowed 8.09s -> tta=4 models=1
+  100/384 (24.6m)
+  200/384 (24.8m)
+  300/384 (24.9m)
+wrote runs\final_local\submission.csv (384 rows) at 25.0 min

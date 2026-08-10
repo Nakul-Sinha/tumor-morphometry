@@ -19,8 +19,9 @@ def _prep(img):
 
 
 @torch.no_grad()
-def predict_maps(model, img, device, tta=4):
-    """img: HxWx3 uint8. Returns dens (4,mh,mw) unscaled, heat, amap, emap."""
+def predict_maps(model, img, device, tta=4, raw=False):
+    """img: HxWx3 uint8. Returns dens (4,mh,mw) unscaled, heat, amap, emap.
+    raw=True skips the ReLU clip on density channels (for bias analysis)."""
     H, W = img.shape[:2]
     mh, mw = map_shape(H, W)
     x = _prep(img).to(device)
@@ -42,7 +43,9 @@ def predict_maps(model, img, device, tta=4):
         acc = out if acc is None else acc + out
     out = acc / len(views)
     out = out[:, :mh, :mw]
-    dens = np.maximum(out[:4], 0.0) / DENS_SCALE
+    dens = out[:4] / DENS_SCALE
+    if not raw:
+        dens = np.maximum(dens, 0.0)
     return dens, out[4], out[5], out[6]
 
 

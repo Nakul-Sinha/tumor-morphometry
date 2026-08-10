@@ -18,3 +18,27 @@ ep 13 dens 0.0121 cnt 2.791 heat 0.0198 attr 0.441 lr 2.26e-04 15.8m
 ep 14 dens 0.0119 cnt 2.725 heat 0.0196 attr 0.435 lr 2.17e-04 16.8m | VAL mean_tau 0.4598 cell=0.758 tumo=0.661 size=0.168 elon=0.394 disp=0.318 altss=0.191 alte=0.436
 ep 15 dens 0.0119 cnt 2.697 heat 0.0194 attr 0.435 lr 2.07e-04 18.0m
 ep 16 dens 0.0116 cnt 2.607 heat 0.0193 attr 0.429 lr 1.97e-04 19.1m
+ep 17 dens 0.0114 cnt 2.564 heat 0.0192 attr 0.423 lr 1.86e-04 20.1m | VAL mean_tau 0.4953 cell=0.769 tumo=0.649 size=0.268 elon=0.435 disp=0.356 altss=0.250 alte=0.484
+ep 18 dens 0.0114 cnt 2.569 heat 0.0192 attr 0.424 lr 1.76e-04 21.3m
+ep 19 dens 0.0113 cnt 2.446 heat 0.0190 attr 0.417 lr 1.65e-04 22.3m
+ep 20 dens 0.0112 cnt 2.499 heat 0.0190 attr 0.416 lr 1.54e-04 23.4m | VAL mean_tau 0.4703 cell=0.744 tumo=0.605 size=0.225 elon=0.434 disp=0.343 altss=0.203 alte=0.481
+ep 21 dens 0.0110 cnt 2.400 heat 0.0189 attr 0.413 lr 1.44e-04 24.5m
+ep 22 dens 0.0110 cnt 2.353 heat 0.0188 attr 0.409 lr 1.33e-04 25.6m
+ep 23 dens 0.0108 cnt 2.281 heat 0.0187 attr 0.408 lr 1.23e-04 26.7m | VAL mean_tau 0.5133 cell=0.792 tumo=0.649 size=0.281 elon=0.456 disp=0.389 altss=0.249 alte=0.464 *
+ep 24 dens 0.0108 cnt 2.231 heat 0.0186 attr 0.403 lr 1.13e-04 27.8m
+ep 25 dens 0.0109 cnt 2.245 heat 0.0185 attr 0.402 lr 1.04e-04 28.9m
+ep 26 dens 0.0107 cnt 2.225 heat 0.0184 attr 0.398 lr 9.45e-05 30.0m | VAL mean_tau 0.4886 cell=0.768 tumo=0.653 size=0.241 elon=0.456 disp=0.325 altss=0.233 alte=0.426
+ep 27 dens 0.0106 cnt 2.155 heat 0.0184 attr 0.395 lr 8.56e-05 31.1m
+ep 28 dens 0.0105 cnt 2.050 heat 0.0182 attr 0.391 lr 7.73e-05 32.2m
+ep 29 dens 0.0104 cnt 2.044 heat 0.0182 attr 0.389 lr 6.95e-05 33.3m | VAL mean_tau 0.4873 cell=0.752 tumo=0.644 size=0.272 elon=0.428 disp=0.340 altss=0.254 alte=0.445
+ep 30 dens 0.0103 cnt 2.022 heat 0.0183 attr 0.389 lr 6.23e-05 34.4m
+ep 31 dens 0.0102 cnt 1.932 heat 0.0181 attr 0.385 lr 5.58e-05 35.5m
+ep 32 dens 0.0101 cnt 1.918 heat 0.0180 attr 0.381 lr 4.99e-05 36.6m | VAL mean_tau 0.4854 cell=0.764 tumo=0.682 size=0.270 elon=0.413 disp=0.298 altss=0.237 alte=0.425
+ep 33 dens 0.0101 cnt 1.924 heat 0.0180 attr 0.380 lr 4.47e-05 37.7m
+ep 34 dens 0.0101 cnt 1.888 heat 0.0180 attr 0.378 lr 4.03e-05 38.8m
+ep 35 dens 0.0101 cnt 1.850 heat 0.0179 attr 0.375 lr 3.66e-05 39.8m | VAL mean_tau 0.4832 cell=0.760 tumo=0.613 size=0.277 elon=0.437 disp=0.328 altss=0.208 alte=0.446
+ep 36 dens 0.0100 cnt 1.840 heat 0.0179 attr 0.373 lr 3.37e-05 41.0m
+ep 37 dens 0.0100 cnt 1.827 heat 0.0179 attr 0.371 lr 3.17e-05 42.0m
+ep 38 dens 0.0099 cnt 1.798 heat 0.0178 attr 0.370 lr 3.04e-05 43.1m | VAL mean_tau 0.4863 cell=0.771 tumo=0.647 size=0.276 elon=0.404 disp=0.334 altss=0.199 alte=0.418
+ep 39 dens 0.0099 cnt 1.777 heat 0.0178 attr 0.372 lr 3.00e-05 44.2m | VAL mean_tau 0.4865 cell=0.759 tumo=0.661 size=0.278 elon=0.413 disp=0.322 altss=0.237 alte=0.427
+BEST val mean_tau 0.5133  (44.3 min total)

@@ -126,11 +126,15 @@ def _sample3(m, ys, xs):
     return out
 
 
+DENS_THR = 3e-4  # noise-floor cutoff (unscaled density units) before integrating
+
+
 def decode_tile(dens, heat, amap, emap, H, W, stride=STRIDE,
-                train_stats=None):
+                train_stats=None, cthr=DENS_THR):
     """dens: (4, mh, mw) unscaled (integral == count). Returns dict of 5 targets
-    plus alternative estimators (keys with suffix _alt)."""
-    dens = np.maximum(dens, 0.0)
+    plus alternative estimators (keys with suffix _alt). Small densities below
+    cthr are zeroed before integrating (kills ReLU background-noise bias)."""
+    dens = np.where(dens > cthr, dens, 0.0)
     per_class = dens.reshape(4, -1).sum(axis=1)
     n_hat = float(per_class.sum())
     out = {}

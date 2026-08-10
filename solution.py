@@ -171,8 +171,12 @@ def _sample3(m, ys, xs):
     return out
 
 
-def decode_tile(dens, heat, amap, emap, H, W, train_stats):
-    dens = np.maximum(dens, 0.0)
+DENS_THR = 3e-4  # default noise-floor cutoff; re-selected in-script on val slides
+
+
+def decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=DENS_THR):
+    # zero sub-threshold densities: kills ReLU background-noise integral bias
+    dens = np.where(dens > cthr, dens, 0.0)
     per_class = dens.reshape(4, -1).sum(axis=1)
     n_hat = float(per_class.sum())
     out = {}
@@ -374,13 +378,13 @@ def predict_maps(model, img, tta=TTA):
     return np.maximum(out[:4], 0.0) / DENS_SCALE, out[4], out[5], out[6]
 
 
-def predict_tile_multi(models, img, train_stats, tta=TTA):
+def predict_tile_multi(models, img, train_stats, tta=TTA, cthr=DENS_THR):
     """Average raw per-target predictions across models (units are physical)."""
     H, W = img.shape[:2]
     decs = []
     for m in models:
         dens, heat, amap, emap = predict_maps(m, img, tta=tta)
-        decs.append(decode_tile(dens, heat, amap, emap, H, W, train_stats))
+        decs.append(decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr))
     keys = decs[0].keys()
     return {k: float(np.mean([d[k] for d in decs])) for k in keys}
 
@@ -523,15 +527,32 @@ def main():
         if tau_b > 0.25:  # sanity: only ensemble a functional model
             models.append(model_b)
 
-    # ---- in-script estimator selection on model A's held-out slides ----
+    # ---- in-script selection on model A's held-out slides (train data only) ----
     model_a.eval()
-    rows = []
+    va_maps = {}
     for iid in va_a:
-        d = predict_tile_multi([model_a], images[iid], train_stats, tta=1)
-        d["image_id"] = iid
-        rows.append(d)
-    va_pred = pd.DataFrame(rows).set_index("image_id").loc[va_a]
+        img = images[iid]
+        va_maps[iid] = (predict_maps(model_a, img, tta=1), img.shape[:2])
     gt_val = targets.set_index("image_id").loc[va_a]
+
+    def decode_val(cthr):
+        rows = []
+        for iid in va_a:
+            (dens, heat, amap, emap), (H, W) = va_maps[iid]
+            d = decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr)
+            d["image_id"] = iid
+            rows.append(d)
+        return pd.DataFrame(rows).set_index("image_id").loc[va_a]
+
+    best_cthr, best_ct_tau, va_pred = DENS_THR, -1.0, None
+    for cthr in [1e-4, 2e-4, 3e-4, 5e-4]:
+        p = decode_val(cthr)
+        mt, _ = morph_score(p, gt_val)
+        print(f"[select] cthr={cthr:g}: val mean_tau {mt:.4f}", flush=True)
+        if mt > best_ct_tau:
+            best_cthr, best_ct_tau, va_pred = cthr, mt, p
+    print(f"[select] chose cthr={best_cthr:g}", flush=True)
+
     use_alt = {}
     for c in ["size_spread", "elongation"]:
         t_pri = clipped_tau(va_pred[c], gt_val[c])
@@ -549,7 +570,7 @@ def main():
     for i, qid in enumerate(q_iter):
         with Image.open(public_dir / "test_images" / f"{qid}.png") as im:
             img = np.asarray(im.convert("RGB"))
-        d = predict_tile_multi(models, img, train_stats, tta=TTA)
+        d = predict_tile_multi(models, img, train_stats, tta=TTA, cthr=best_cthr)
         rec = {"id": qid}
         for c in COLS:
             key = f"{c}_alt" if use_alt.get(c, False) else c

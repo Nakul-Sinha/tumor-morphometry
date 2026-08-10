@@ -100,14 +100,31 @@ def main():
     if tau_b > 0.25:
         models.append(model_b)
 
-    # estimator selection on A's val
-    rows = []
+    # cthr + estimator selection on A's val (mirrors solution.py)
+    va_maps = {}
     for iid in va_a:
-        d = S.predict_tile_multi([model_a], images[iid], train_stats, tta=1)
-        d["image_id"] = iid
-        rows.append(d)
-    va_pred = pd.DataFrame(rows).set_index("image_id").loc[va_a]
+        img = images[iid]
+        va_maps[iid] = (S.predict_maps(model_a, img, tta=1), img.shape[:2])
     gt_val = targets.set_index("image_id").loc[va_a]
+
+    def decode_val(cthr):
+        rows = []
+        for iid in va_a:
+            (dens, heat, amap, emap), (H, W) = va_maps[iid]
+            d = S.decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr)
+            d["image_id"] = iid
+            rows.append(d)
+        return pd.DataFrame(rows).set_index("image_id").loc[va_a]
+
+    best_cthr, best_ct_tau, va_pred = S.DENS_THR, -1.0, None
+    for cthr in [1e-4, 2e-4, 3e-4, 5e-4]:
+        p = decode_val(cthr)
+        mt, _ = morphometry_score(p, gt_val)
+        print(f"[select] cthr={cthr:g}: val mean_tau {mt:.4f}", flush=True)
+        if mt > best_ct_tau:
+            best_cthr, best_ct_tau, va_pred = cthr, mt, p
+    print(f"[select] chose cthr={best_cthr:g}", flush=True)
+
     use_alt = {}
     for c in ["size_spread", "elongation"]:
         t_pri = S.clipped_tau(va_pred[c], gt_val[c])
@@ -120,7 +137,8 @@ def main():
     def infer(mods, tta):
         rows = []
         for iid in ptest_ids:
-            d = S.predict_tile_multi(mods, images[iid], train_stats, tta=tta)
+            d = S.predict_tile_multi(mods, images[iid], train_stats, tta=tta,
+                                     cthr=best_cthr)
             rec = {"image_id": iid}
             for c in COLS:
                 rec[c] = d[f"{c}_alt"] if use_alt.get(c, False) else d[c]

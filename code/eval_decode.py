@@ -54,8 +54,8 @@ def dump(args):
     for i, iid in enumerate(va_ids):
         with Image.open(DATA / "train_images" / f"{iid}.png") as im:
             img = np.asarray(im.convert("RGB"))
-        dens, heat, amap, emap = predict_maps(model, img, device, tta=args.tta)
-        np.savez_compressed(outdir / f"{iid}.npz", dens=dens.astype(np.float16),
+        dens, heat, amap, emap = predict_maps(model, img, device, tta=args.tta, raw=True)
+        np.savez_compressed(outdir / f"{iid}.npz", dens=dens.astype(np.float32),
                             heat=heat.astype(np.float16), amap=amap.astype(np.float16),
                             emap=emap.astype(np.float16),
                             hw=np.array(img.shape[:2]))
@@ -65,9 +65,17 @@ def dump(args):
 
 
 def decode_variant(dens, heat, amap, emap, H, W, ts, nms_thr=0.05, kmul=1.0,
-                   sample_center=False):
-    dens = np.maximum(dens, 0.0)
-    per_class = dens.reshape(4, -1).sum(axis=1)
+                   sample_center=False, count_mode="clip", cthr=0.0):
+    if count_mode == "raw":
+        per_class = dens.reshape(4, -1).sum(axis=1)
+        dens = np.maximum(dens, 0.0)  # for downstream weighting only
+    elif count_mode == "thr":
+        d = np.where(dens > cthr, dens, 0.0)
+        per_class = d.reshape(4, -1).sum(axis=1)
+        dens = d
+    else:  # clip
+        dens = np.maximum(dens, 0.0)
+        per_class = dens.reshape(4, -1).sum(axis=1)
     n_hat = float(per_class.sum())
     out = {"cellularity": 1e5 * n_hat / (W * H),
            "tumor_frac": float(per_class[0] / (n_hat + 1e-6))}
@@ -115,11 +123,12 @@ def sweep(args):
     gt = targets.loc[ids]
 
     variants = []
-    for nms_thr in [0.02, 0.05, 0.1, 0.15]:
-        variants.append(dict(nms_thr=nms_thr, kmul=1.0, sample_center=False))
-    for kmul in [0.8, 0.9, 1.1]:
-        variants.append(dict(nms_thr=0.05, kmul=kmul, sample_center=False))
-    variants.append(dict(nms_thr=0.05, kmul=1.0, sample_center=True))
+    for ct_ in [2e-4, 3e-4, 4e-4, 5e-4]:
+        for km in [0.85, 1.0]:
+            variants.append(dict(count_mode="thr", cthr=ct_, kmul=km))
+    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=1.0, nms_thr=0.15))
+    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=1.0, nms_thr=0.25))
+    variants.append(dict(count_mode="thr", cthr=3e-4, kmul=0.9))
 
     for v in variants:
         rows = []

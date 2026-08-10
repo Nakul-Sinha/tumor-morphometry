@@ -427,6 +427,7 @@ def train_one(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
         ds.set_epoch(ep)
         model.train()
         for x, tgt, counts in dl:
+            x, tgt, counts = x.to(DEVICE), tgt.to(DEVICE), counts.to(DEVICE)
             pred = model(x)
             l_dens = F.mse_loss(pred[:, :4], tgt[:, :4])
             l_cnt = F.l1_loss(pred[:, :4].sum(dim=(2, 3)) / DENS_SCALE, counts)

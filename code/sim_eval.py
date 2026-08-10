@@ -36,7 +36,14 @@ def main():
     ap.add_argument("--stop-a", type=float, default=90.0)
     ap.add_argument("--stop-all", type=float, default=180.0)
     ap.add_argument("--single", action="store_true", help="model A only (CPU recipe)")
+    ap.add_argument("--device", default=None, help="dev override: cuda for fast sim")
+    ap.add_argument("--data", default=None, help="dataset dir override")
     args = ap.parse_args()
+    global DATA
+    if args.data:
+        DATA = Path(args.data)
+    if args.device:
+        S.DEVICE = args.device  # dev-only; deliverable path is always cpu
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 

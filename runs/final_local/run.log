@@ -1,3 +1,12 @@
 device=cuda threads=10
 loading train images...
 loaded 1358 train images (0.2m)
+[A] ep 00 loss 1.1022 (74s/ep, 1.6m)
+[A] ep 01 loss 0.4372 (84s/ep, 3.0m)
+[A] ep 02 loss 0.3610 (65s/ep, 4.1m) VAL 0.4532 cell=0.733 tumo=0.623 size=0.191 elon=0.487 disp=0.230 *
+[A] ep 03 loss 0.3800 (76s/ep, 5.3m)
+[A] ep 04 loss 0.3297 (69s/ep, 6.5m)
+[A] ep 05 loss 0.3307 (69s/ep, 7.6m) VAL 0.5152 cell=0.743 tumo=0.644 size=0.327 elon=0.487 disp=0.374 *
+[A] ep 06 loss 0.2948 (82s/ep, 9.0m)
+[A] ep 07 loss 0.3231 (63s/ep, 10.0m)
+[A] ep 08 loss 0.2795 (65s/ep, 11.1m) VAL 0.5213 cell=0.745 tumo=0.655 size=0.322 elon=0.478 disp=0.406 *

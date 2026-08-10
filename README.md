@@ -21,6 +21,22 @@ targets from predicted maps with the EXACT label-generation arithmetic.
 - Rejected by measurement: quadrat-VMR dispersion from smoothed density
   (oracle tau only 0.25–0.46); subpixel peak refinement (no change, 0.9655).
 
+## Final recipe (CPU-only reference env: 10 cores, 62GB, 90-min limit)
+Single ResNet18-UNet (ImageNet encoder, random-init fallback), 20 epochs x
+4 crops/image (256px), bs 16, AdamW 3e-4 cosine, val every 3 epochs on a 15%
+slide-grouped holdout with metric-aligned checkpointing; in-script selection of
+the density noise-floor threshold (cthr grid) and size/elongation estimator
+(peak vs density-weighted) on the same held-out slides; flip-TTA4 per-sample
+inference. device is hardcoded cpu; threads = min(10, cores); fixed seeds.
+Emergency-only guards (train stop 68 min, budget 82 min) never fire on
+reference hardware.
+
+## Estimated scores (28% slide-grouped pseudo-test, 402 tiles, exact metric)
+- CPU recipe (the deliverable): **0.5663** mean tau
+  (cell 0.742, tumor 0.591, size 0.507, elong 0.561, disp 0.431)
+- Upside (40-epoch 2-model ensemble, if a GPU were available): 0.5914
+- AI baseline to beat: 0.46
+
 ## Layout
 - `solution.py` — self-contained Eris submission (`python3 solution.py <public_dir> <out.csv>`);
   trains model A (+B if time), metric-aligned checkpointing on slide-grouped

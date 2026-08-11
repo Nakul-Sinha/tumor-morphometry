@@ -70,7 +70,7 @@ TRAIN_STOP_MIN = _env("CH2_TRAIN_STOP_MIN", 68.0, float)
 TOTAL_BUDGET_MIN = _env("CH2_TOTAL_BUDGET_MIN", 82.0, float)
 MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 68.0, float)
 TWO_MODELS = _env("CH2_TWO_MODELS", 0, int)         # single model A (CPU budget)
-PRETRAINED = _env("CH2_PRETRAINED", 1, int)         # ImageNet encoder init
+PRETRAINED = _env("CH2_PRETRAINED", 0, int)         # encoder init: 0 = from-scratch (default, uses only provided data), 1 = ImageNet
 SUBSET = _env("CH2_SUBSET", 0, int)                 # dev-only: limit train tiles
 TTA = _env("CH2_TTA", 8, int)          # D4: 4 flips + their rot90 compositions
 LIMIT_TEST = _env("CH2_LIMIT_TEST", 0, int)         # dev-only: limit test tiles

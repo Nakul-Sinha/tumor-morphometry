@@ -6,8 +6,8 @@ is trained IN THIS SCRIPT on the provided tiles + per-cell annotations to predic
   - 1 center heatmap (adaptive-sigma Gaussians, for peak decoding)
   - 2 attribute maps (log-area, elongation painted in disks at cell centers)
 The five population properties are then computed from the predicted maps using
-their standard morphometric definitions (all consistent with the provided
-train_targets to tau>=0.9999):
+standard morphometric definitions of the population properties described in the
+challenge statement:
   cellularity = cells per 100,000 px^2 = 1e5 * N / (W*H),  N = density integral
   tumor_frac  = N_tumor / N
   size_spread = coefficient of variation (population) of per-cell area

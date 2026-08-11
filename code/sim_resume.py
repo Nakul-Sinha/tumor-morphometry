@@ -12,7 +12,7 @@ import pandas as pd
 import torch
 
 sys.path.insert(0, str(Path(__file__).parent))
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import solution as S
 from metric import morphometry_score, COLS

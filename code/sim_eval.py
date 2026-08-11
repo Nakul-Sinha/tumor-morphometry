@@ -19,7 +19,7 @@ import pandas as pd
 import torch
 
 sys.path.insert(0, str(Path(__file__).parent))
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 
 # reuse solution.py internals (import-safe)
 sys.path.insert(0, str(Path(__file__).parent.parent))

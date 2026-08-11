@@ -12,7 +12,7 @@ from PIL import Image
 from scipy.spatial import cKDTree
 from scipy.stats import kendalltau, spearmanr
 
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 
 
 def clipped_tau(a, b):

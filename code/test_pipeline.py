@@ -14,7 +14,7 @@ from dataset import CROP, CropDataset, load_images_and_cells
 from maps import DENS_SCALE, map_shape
 from model import UNetR18
 
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 
 
 def main():

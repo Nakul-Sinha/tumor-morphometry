@@ -17,7 +17,7 @@ from maps import decode_tile, nms_peaks, STRIDE, _sample3
 from metric import COLS, morphometry_score
 from scipy.stats import kendalltau
 
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 
 
 def ct(a, b):

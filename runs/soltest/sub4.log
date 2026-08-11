@@ -1,4 +1,4 @@
-public_dir=G:\Datacurve\Latest_Chals\challenge 2\dataset submission_out=runs\soltest\sub4.csv
+public_dir=G:\ml\Latest_Chals\challenge 2\dataset submission_out=runs\soltest\sub4.csv
 device=cuda threads=10
 loading train images...
 loaded 1358 train images (0.2m)

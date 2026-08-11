@@ -1,4 +1,4 @@
-"""Tumor Microenvironment Morphometry — end-to-end Eris submission.
+"""Tumor Microenvironment Morphometry — end-to-end submission.
 
 Approach: reframe the 5 scalar targets as dense per-cell prediction. A ResNet18-UNet
 is trained IN THIS SCRIPT on the provided tiles + per-cell annotations to predict:

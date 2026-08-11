@@ -12,7 +12,7 @@ from maps import CLASSES, render_maps, STRIDE
 from metric import COLS
 from scipy.stats import kendalltau
 
-DATA = Path(r"G:\Datacurve\Latest_Chals\challenge 2\dataset")
+DATA = Path(r"G:\ml\Latest_Chals\challenge 2\dataset")
 
 
 def ct(a, b):

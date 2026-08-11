@@ -1,4 +1,4 @@
-# the platform Challenge 2 — Tumor Microenvironment Morphometry
+# Tumor Microenvironment Morphometry: technical notes
 
 Goal: beat AI baseline 0.46 (mean of 5 clipped Kendall taus over 384 test tiles).
 
@@ -17,7 +17,7 @@ morphometric definitions, which match the provided train_targets to tau>=0.9999:
 
 Oracle check: running the decode on maps rendered from the ground-truth cell
 table reproduces the targets at mean tau 0.9918 (dispersion 0.967 is the
-ceiling — nearby peaks merge).
+ceiling, nearby peaks merge).
 
 ## Final recipe (CPU-only reference env: 10 cores, 62GB, 90-min limit)
 Single ResNet18-UNet, 20 epochs x 4 crops/image (256px), bs 16, AdamW 3e-4
@@ -55,7 +55,7 @@ run's reference decode at ptest 0.5400, not independent-run estimates):
 
 - TTA8 + extended cthr grid + peak budget 0.8*n_hat (frozen): ptest 0.5717
   (+0.032 within-run)
-- what actually ships — the same stack but with k va-selected over {0.8, 1.0}:
+- what actually ships, the same stack but with k va-selected over {0.8, 1.0}:
   on this run the val picks k=1.0 / cthr=6e-4 (va 0.5916, ptest 0.5650, +0.025
   within-run). Selection costs ~0.007 ptest versus the frozen k=0.8 on this one
   run, and is preferred because it adapts to whatever model the fresh in-script
@@ -72,13 +72,13 @@ run's reference decode at ptest 0.5400, not independent-run estimates):
 All other prediction CSVs from dev runs are quarantined outside the repo.
 
 ## Layout
-- `solution.py` — self-contained submission. Both invocation styles work:
+- `solution.py`: self-contained submission. Both invocation styles work:
   `python3 solution.py <public_dir> <out.csv>` and bare `python3 solution.py`
   (probes dataset/ mounts, writes working/submission.csv). Always dual-writes
   working/submission.csv.
-- `code/` — dev modules and tests (metric replica, map render/decode core,
+- `code/`: dev modules and tests (metric replica, map render/decode core,
   oracle verification, dev trainer, decode sweeps, eval simulations).
-- `provenance/` — reference-box run logs.
+- `provenance/`: reference-box run logs.
 
 ## Validation discipline
 Slide-grouped only (`group` column): GroupShuffleSplit 15% inside training

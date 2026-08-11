@@ -17,7 +17,7 @@ train_targets to tau>=0.9999):
 
 Validation inside the script: slide-grouped holdout (GroupShuffleSplit on `group`),
 checkpoint selection and estimator selection by the actual metric (mean clipped
-Kendall tau) on held-out slides. Strictly per-sample test inference (flip TTA only).
+Kendall tau) on held-out slides. Strictly per-sample test inference (D4 TTA only).
 
 Usage: python3 solution.py <public_dir> <submission_out>
        python3 solution.py            (falls back to dataset/ -> working/submission.csv)
@@ -54,10 +54,11 @@ def _env(name, default, cast):
 
 # ---- FIXED CPU RECIPE (reference env: 10 CPU cores, 62GB RAM, 90-min limit) ----
 # Measured on a 10-core-pinned Zen5 box under real load: ~170-220 s/epoch,
-# ~0.1 s/tile forward. 16 epochs x 4 crops/image + val every 3 + TTA4
-# inference ~= 55 min wall, leaving ~35 min headroom for slower silicon.
+# ~0.1 s/tile forward. 20 epochs x 4 crops/image + val every 3 + TTA8
+# inference ~= 67 min wall, leaving headroom for slower silicon (the guards
+# below degrade TTA and, in the extreme, truncate training).
 SEED = 42
-EPOCHS = _env("CH2_EPOCHS", 16, int)
+EPOCHS = _env("CH2_EPOCHS", 20, int)
 CPI = _env("CH2_CPI", 4, int)                       # crops per image per epoch
 BATCH = 16
 LR = 3e-4
@@ -71,7 +72,7 @@ MODEL_A_STOP_MIN = _env("CH2_MODEL_A_STOP_MIN", 68.0, float)
 TWO_MODELS = _env("CH2_TWO_MODELS", 0, int)         # single model A (CPU budget)
 PRETRAINED = _env("CH2_PRETRAINED", 1, int)         # ImageNet encoder init
 SUBSET = _env("CH2_SUBSET", 0, int)                 # dev-only: limit train tiles
-TTA = _env("CH2_TTA", 4, int)
+TTA = _env("CH2_TTA", 8, int)          # D4: 4 flips + their rot90 compositions
 LIMIT_TEST = _env("CH2_LIMIT_TEST", 0, int)         # dev-only: limit test tiles
 
 STRIDE = 2
@@ -190,7 +191,8 @@ def _sample3(m, ys, xs):
 DENS_THR = 3e-4  # default noise-floor cutoff; re-selected in-script on val slides
 
 
-def decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=DENS_THR):
+def decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=DENS_THR,
+                k_mult=1.0):
     # zero sub-threshold densities: kills ReLU background-noise integral bias
     dens = np.where(dens > cthr, dens, 0.0)
     per_class = dens.reshape(4, -1).sum(axis=1)
@@ -201,7 +203,7 @@ def decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=DENS_THR):
 
     # fail-closed peak selection: only confident peaks count; if too few,
     # the per-target fallbacks below use train statistics instead of junk.
-    k = int(max(5, round(n_hat)))
+    k = int(max(5, round(k_mult * n_hat)))
     ys, xs, scores = nms_peaks(heat, k)
     keep = scores > 0.05
     ys, xs, scores = ys[keep], xs[keep], scores[keep]
@@ -323,22 +325,68 @@ def _block(cin, cout):
         nn.ReLU(inplace=True))
 
 
+class _BasicBlock(nn.Module):
+    def __init__(self, cin, cout, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(cin, cout, 3, stride, 1, bias=False)
+        self.bn1 = nn.BatchNorm2d(cout)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(cout, cout, 3, 1, 1, bias=False)
+        self.bn2 = nn.BatchNorm2d(cout)
+        self.downsample = None
+        if stride != 1 or cin != cout:
+            self.downsample = nn.Sequential(
+                nn.Conv2d(cin, cout, 1, stride, bias=False), nn.BatchNorm2d(cout))
+
+    def forward(self, x):
+        idt = x if self.downsample is None else self.downsample(x)
+        o = self.relu(self.bn1(self.conv1(x)))
+        return self.relu(self.bn2(self.conv2(o)) + idt)
+
+
+class _ResNet18Trunk(nn.Module):
+    """torchvision-free resnet18 trunk (random init) — last-resort fallback so a
+    broken torchvision degrades instead of crashing the run."""
+
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 64, 7, 2, 3, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(3, 2, 1)
+        def _stage(cin, cout, stride):
+            return nn.Sequential(_BasicBlock(cin, cout, stride),
+                                 _BasicBlock(cout, cout))
+        self.layer1 = _stage(64, 64, 1)
+        self.layer2 = _stage(64, 128, 2)
+        self.layer3 = _stage(128, 256, 2)
+        self.layer4 = _stage(256, 512, 2)
+
+
 class UNetR18(nn.Module):
     def __init__(self, out_ch=7, pretrained=True):
         super().__init__()
-        import torchvision
+        # torchvision is imported INSIDE the guard: a missing/broken torchvision
+        # must degrade to the loud random-init fallback, never hard-crash.
+        enc = None
         if pretrained:
             try:
+                import torchvision
                 enc = torchvision.models.resnet18(
                     weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
                 print("[model] encoder init: ImageNet pretrained", flush=True)
             except Exception as e:
                 print(f"[model] PRETRAINED FETCH FAILED ({e}) -> RANDOM INIT "
                       f"(untested-config warning)", flush=True)
+        if enc is None:
+            try:
+                import torchvision
                 enc = torchvision.models.resnet18(weights=None)
-        else:
-            enc = torchvision.models.resnet18(weights=None)
-            print("[model] encoder init: random (from-scratch)", flush=True)
+                print("[model] encoder init: random (from-scratch)", flush=True)
+            except Exception as e:
+                print(f"[model] torchvision unavailable ({e}) -> built-in "
+                      f"ResNet18 trunk, random init", flush=True)
+                enc = _ResNet18Trunk()
         self.stem = nn.Sequential(enc.conv1, enc.bn1, enc.relu)
         self.pool = enc.maxpool
         self.l1, self.l2, self.l3, self.l4 = enc.layer1, enc.layer2, enc.layer3, enc.layer4
@@ -376,38 +424,73 @@ def _prep(img):
     return torch.from_numpy(f).permute(2, 0, 1)[None]
 
 
+_FLIP_TAGS = [None, "h", "v", "hv"]
+
+
+def _flip_in(x, tag):
+    if tag == "h":
+        return torch.flip(x, [3])
+    if tag == "v":
+        return torch.flip(x, [2])
+    if tag == "hv":
+        return torch.flip(x, [2, 3])
+    return x
+
+
+def _flip_out(out, tag):
+    # out: (7, h, w) numpy; inverse of _flip_in on the map axes
+    if tag == "h":
+        return out[:, :, ::-1]
+    if tag == "v":
+        return out[:, ::-1, :]
+    if tag == "hv":
+        return out[:, ::-1, ::-1]
+    return out
+
+
 @torch.no_grad()
 def predict_maps(model, img, tta=TTA):
+    """D4 test-time augmentation, strictly per-sample.
+
+    Views 0-3 are the plain flips (identity, h, v, hv); views 4-7 compose a
+    rot90 on top of each flip: input R(F(x)), output canonicalized as
+    F_inv(R_inv(y)). Canonicalization happens BEFORE the crop to the map grid
+    (the padded rot90 output is transposed, so cropping first would be wrong).
+    tta in {1, 2, 4, 8} takes the first N views and averages them.
+    """
     H, W = img.shape[:2]
     mh, mw = map_shape(H, W)
     x = _prep(img).to(DEVICE)
-    views = [(x, None)]
+    views = [(None, False)]
     if tta >= 2:
-        views.append((torch.flip(x, [3]), "h"))
+        views.append(("h", False))
     if tta >= 4:
-        views += [(torch.flip(x, [2]), "v"), (torch.flip(x, [2, 3]), "hv")]
+        views += [("v", False), ("hv", False)]
+    if tta >= 8:
+        views += [(t, True) for t in _FLIP_TAGS]
     acc = None
-    for v, tag in views:
+    for tag, rot in views:
+        v = _flip_in(x, tag)
+        if rot:
+            v = torch.rot90(v, 1, dims=[2, 3])
         out = model(v)[0].float().cpu().numpy()
-        if tag == "h":
-            out = out[:, :, ::-1]
-        elif tag == "v":
-            out = out[:, ::-1, :]
-        elif tag == "hv":
-            out = out[:, ::-1, ::-1]
+        if rot:
+            out = np.rot90(out, -1, axes=(1, 2))
+        out = np.ascontiguousarray(_flip_out(out, tag)[:, :mh, :mw])
         acc = out if acc is None else acc + out
     out = acc / len(views)
-    out = out[:, :mh, :mw]
     return np.maximum(out[:4], 0.0) / DENS_SCALE, out[4], out[5], out[6]
 
 
-def predict_tile_multi(models, img, train_stats, tta=TTA, cthr=DENS_THR):
+def predict_tile_multi(models, img, train_stats, tta=TTA, cthr=DENS_THR,
+                       k_mult=1.0):
     """Average raw per-target predictions across models (units are physical)."""
     H, W = img.shape[:2]
     decs = []
     for m in models:
         dens, heat, amap, emap = predict_maps(m, img, tta=tta)
-        decs.append(decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr))
+        decs.append(decode_tile(dens, heat, amap, emap, H, W, train_stats,
+                                cthr=cthr, k_mult=k_mult))
     keys = decs[0].keys()
     return {k: float(np.mean([d[k] for d in decs])) for k in keys}
 
@@ -577,23 +660,28 @@ def main():
         va_maps[iid] = (predict_maps(model_a, img, tta=1), img.shape[:2])
     gt_val = targets.set_index("image_id").loc[va_a]
 
-    def decode_val(cthr):
+    def decode_val(cthr, k_mult):
         rows = []
         for iid in va_a:
             (dens, heat, amap, emap), (H, W) = va_maps[iid]
-            d = decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr)
+            d = decode_tile(dens, heat, amap, emap, H, W, train_stats, cthr=cthr,
+                            k_mult=k_mult)
             d["image_id"] = iid
             rows.append(d)
         return pd.DataFrame(rows).set_index("image_id").loc[va_a]
 
-    best_cthr, best_ct_tau, va_pred = DENS_THR, -1.0, None
-    for cthr in [1e-4, 2e-4, 3e-4, 5e-4, 8e-4, 1.2e-3]:
-        p = decode_val(cthr)
-        mt, _ = morph_score(p, gt_val)
-        print(f"[select] cthr={cthr:g}: val mean_tau {mt:.4f}", flush=True)
-        if mt > best_ct_tau:
-            best_cthr, best_ct_tau, va_pred = cthr, mt, p
-    print(f"[select] chose cthr={best_cthr:g}", flush=True)
+    # joint (cthr, k_mult) selection on the cached tta1 val maps: decode-only,
+    # a few seconds total. Strict > keeps first-best deterministic.
+    best_cthr, best_kmult, best_ct_tau, va_pred = DENS_THR, 1.0, -1.0, None
+    for cthr in [1e-4, 2e-4, 3e-4, 5e-4, 6e-4, 7e-4, 8e-4, 1e-3, 1.2e-3]:
+        for k_mult in [0.8, 1.0]:
+            p = decode_val(cthr, k_mult)
+            mt, _ = morph_score(p, gt_val)
+            print(f"[select] cthr={cthr:g} k_mult={k_mult:g}: "
+                  f"val mean_tau {mt:.4f}", flush=True)
+            if mt > best_ct_tau:
+                best_cthr, best_kmult, best_ct_tau, va_pred = cthr, k_mult, mt, p
+    print(f"[select] chose cthr={best_cthr:g} k_mult={best_kmult:g}", flush=True)
 
     use_alt = {}
     for c in ["size_spread", "elongation"]:
@@ -603,7 +691,7 @@ def main():
         print(f"[select] {c}: primary {t_pri:.4f} vs alt {t_alt:.4f} "
               f"-> {'alt' if use_alt[c] else 'primary'}", flush=True)
 
-    # ---- test inference (strictly per-sample; flip TTA only) ----
+    # ---- test inference (strictly per-sample; D4 TTA only) ----
     print(f"test inference on {len(queries)} tiles ({elapsed_min():.1f}m)...", flush=True)
     out_rows = []
     q_iter = list(queries["query_id"])
@@ -617,10 +705,14 @@ def main():
     for qid in q_iter[:probe_n]:
         with Image.open(public_dir / "test_images" / f"{qid}.png") as im:
             img = np.asarray(im.convert("RGB"))
-        predict_tile_multi(models_use, img, train_stats, tta=tta_use, cthr=best_cthr)
+        predict_tile_multi(models_use, img, train_stats, tta=tta_use, cthr=best_cthr,
+                           k_mult=best_kmult)
     cost = (time.time() - tp0) / max(probe_n, 1)
     remain_s = max((TOTAL_BUDGET_MIN - elapsed_min()) * 60.0, 60.0)
     allowed = 0.9 * remain_s / max(len(q_iter), 1)
+    if cost > allowed and tta_use > 4:
+        tta_use = 4
+        cost /= 2
     if cost > allowed and tta_use > 2:
         tta_use = 2
         cost /= 2
@@ -635,7 +727,8 @@ def main():
     for i, qid in enumerate(q_iter):
         with Image.open(public_dir / "test_images" / f"{qid}.png") as im:
             img = np.asarray(im.convert("RGB"))
-        d = predict_tile_multi(models_use, img, train_stats, tta=tta_use, cthr=best_cthr)
+        d = predict_tile_multi(models_use, img, train_stats, tta=tta_use,
+                               cthr=best_cthr, k_mult=best_kmult)
         rec = {"id": qid}
         for c in COLS:
             key = f"{c}_alt" if use_alt.get(c, False) else c

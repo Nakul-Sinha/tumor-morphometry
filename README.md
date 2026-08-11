@@ -20,16 +20,20 @@ table reproduces the targets at mean tau 0.9918 (dispersion 0.967 is the
 ceiling — nearby peaks merge).
 
 ## Final recipe (CPU-only reference env: 10 cores, 62GB, 90-min limit)
-Single ResNet18-UNet, 16 epochs x 4 crops/image (256px), bs 16, AdamW 3e-4
+Single ResNet18-UNet, 20 epochs x 4 crops/image (256px), bs 16, AdamW 3e-4
 cosine, val every 3 epochs on a 15% slide-grouped holdout with metric-aligned
-checkpointing; in-script selection (train slides only) of the density
-noise-floor threshold (cthr grid 1e-4..1.2e-3) and the size/elongation
-estimator; flip-TTA4 per-sample inference; fail-closed decode (train-statistic
-fallbacks when confident peaks < 3). Device is hardcoded cpu, threads =
-min(10, cores), fixed seeds. Encoder init: see provenance table (measured
-pretrained-vs-random delta documented there).
+checkpointing; in-script joint selection (train slides only, cached tta1 val
+maps) of the density noise-floor threshold (9-point cthr grid
+1e-4..1.2e-3) x the peak budget k, va-selected over {0.8, 1.0} x n_hat, then
+the size/elongation estimator; D4 TTA8 per-sample inference (4 flips + their
+rot90 compositions, canonicalized before the map crop); fail-closed decode
+(train-statistic fallbacks when confident peaks < 3). Device is hardcoded cpu,
+threads = min(10, cores), fixed seeds. Encoder init: ImageNet is attempted
+first and a broken/missing torchvision degrades loudly to random init instead
+of crashing; see provenance table for the measured pretrained-vs-random delta.
 
-Wall-clock on the reference box (10 pinned cores): ~55 min. Emergency guards
+Wall-clock on the reference box (10 pinned cores): ~67 min (20-epoch pipeline
+~66.4 min + 1.2 min TTA8 test inference, vs 0.6 min at TTA4). Emergency guards
 (train stop 68 min, whole-script budget 82 min) exist only for much slower
 hardware and do not fire on the reference box. Degraded floor if they ever
 fire: the val curve reaches ~0.52 by epoch 8 and ~0.54 by epoch 14, so even a
@@ -41,10 +45,23 @@ Estimates are device-agnostic (same recipe/steps/seeds; independent training
 runs vary by roughly +-0.01-0.02 mean tau):
 
 - Fixed recipe (the deliverable): ~0.57 mean tau
-  (cell 0.742, tumor 0.591, size 0.507, elong 0.561, disp 0.431 at 20 epochs;
-  16-epoch confirmation values in the final report)
+  (cell 0.742, tumor 0.591, size 0.507, elong 0.561, disp 0.431 at 20 epochs)
 - Upside variant (40-epoch 2-model ensemble, does not fit the CPU budget): 0.5914
 - AI baseline to beat: 0.46
+
+Decode-side improvements, measured on the `base20` dev run (one 20-epoch
+training run; all numbers are WITHIN-RUN controlled deltas against that same
+run's reference decode at ptest 0.5400, not independent-run estimates):
+
+- TTA8 + extended cthr grid + peak budget 0.8*n_hat (frozen): ptest 0.5717
+  (+0.032 within-run)
+- what actually ships — the same stack but with k va-selected over {0.8, 1.0}:
+  on this run the val picks k=1.0 / cthr=6e-4 (va 0.5916, ptest 0.5650, +0.025
+  within-run). Selection costs ~0.007 ptest versus the frozen k=0.8 on this one
+  run, and is preferred because it adapts to whatever model the fresh in-script
+  training produces rather than to a single dev checkpoint.
+- rejected: snapshot (top-2 checkpoint) ensembling and the alternative
+  dispersion estimators (soft / quadrat) both measured negative.
 
 ## Artifact provenance
 | artifact | md5 | produced by |

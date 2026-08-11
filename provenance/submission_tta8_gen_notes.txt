@@ -1,0 +1,40 @@
+submission_tta8_evidence.csv -- generation notes (Worker B, 2026-08-11)
+=======================================================================
+Status: EVIDENCE ONLY. The graded artifact is solution.py (re-run on the
+grader's env); this CSV is the composed-decode config's actual test-tile
+output, kept for inspection/diffing. It does not replace submission.csv.
+
+Model      : ch2exp/run_b20/ckpt_best.pt  (epoch 14, val mean tau 0.540030)
+             UNetR18 (resnet18 enc), CPU only. No other checkpoint exists on
+             the box -- find over ~/{final_out,ch2code,working,randinit,ch2exp,.}
+             (maxdepth 2) returned only run_b20's ckpt_best.pt / ckpt_second.pt,
+             so no candidate-model bake-off was possible.
+
+Decode cfg : DEFAULT_CFG + views=(0,1,2,3,4,5,6,7) [D4 TTA8] + k_mult=0.8
+             cthr = 3e-4      <- selected on va over the EXTENDED grid
+             [1e-4,2e-4,3e-4,5e-4,6e-4,7e-4,8e-4,1e-3,1.2e-3]
+             use_alt = {size_spread: False, elongation: True}
+
+Selection reproduction (decode_sweep.select_on_va on run_b20 saved maps):
+  best_cthr 3e-4, use_alt as above, sel_va_mean 0.561410,
+  composed-decode va mean 0.5843656
+  -> matches combo_b20.json record "v01234567_k0.8_a0.5" to 1e-9.
+  va per-target: cell .7414 tfrac .6754 ssprd .5417 elong .5779 disp .3855
+  (same record's honest ptest mean: 0.5717)
+
+Inference   : 384 test tiles, 8 canonicalized views averaged in FLOAT32
+              (no fp16 round-trip, unlike the saved map dumps), then
+              dens = max(m[:4],0)/DENS_SCALE; decode_sweep.decode_maps.
+              torch/OMP/MKL threads = 20 (headroom left for Worker A).
+              Wall time: 0.98 min inference, 1.29 min end-to-end.
+
+Validation  : 384 rows; ids == sample_submission ids in order; no NaN/inf;
+              cellularity > 0; dispersion in [0, 2.5]; all 5 columns have
+              384 distinct values (nothing constant).
+Column means: cell 27.868  tfrac 0.5026  ssprd 0.3892  elong 1.2841  disp 1.3365
+  (v1 final_out/submission.csv: 24.924 / 0.4448 / 0.6234 / 1.2929 / 1.3324 --
+   size_spread differs because v1 used the _alt estimator there; ranks are
+   what the metric scores, so the level shift is expected, not a defect.)
+
+Env parity  : Virginia venv torch 2.13.0+cpu, torchvision 0.28.0+cpu.
+Generator   : ~/ch2exp/gen_tta8.py on the box (log: ~/ch2exp/gen_tta8.log).

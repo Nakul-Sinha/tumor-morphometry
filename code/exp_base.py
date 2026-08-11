@@ -8,6 +8,13 @@ offline later without re-running the network.
 
 Usage:
   python exp_base.py --data <dataset_dir> --out <out_dir> [--epochs 20] [--smoke]
+      [--train-seed 43] [--w-attr 0.5] [--w-heat 1.0] [--dump-best-only]
+
+The optional knobs all default to the reference behaviour: --train-seed defaults
+to solution.SEED (the tr/va split is ALWAYS split(solution.SEED) so every run
+shares identical ids), --w-attr/--w-heat default to the reference loss weights,
+and --dump-best-only only skips the second-checkpoint map dump (ckpt_second.pt
+is still written).
 
 All files (solution.py, metric.py, exp_base.py, tta8_geom_test.py) live flat in
 the same directory.
@@ -119,10 +126,12 @@ def maps_from_views(v, sel):
 # training (verbatim S.train_one + top-2 checkpoint tracking + val history)
 # ----------------------------------------------------------------------------
 def train_top2(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
-               stop_min, epochs, tag="A"):
+               stop_min, epochs, tag="A", w_attr=0.5, w_heat=1.0):
     """VERBATIM copy of solution.train_one, plus:
       - keeps the top-2 validation checkpoints (deepcopy only; no RNG use)
       - records the full validation history
+      - loss weights w_heat / w_attr are configurable; the defaults
+        (1.0 / 0.5) reproduce the reference expression exactly.
     Nothing that consumes RNG is changed, so the returned best model is
     bit-comparable with what S.train_one would produce for the same inputs.
     """
@@ -162,7 +171,7 @@ def train_top2(images, cells_by, tr_ids, va_ids, targets, train_stats, seed,
             msum = mask.sum() + 1e-6
             l_a = (torch.abs(pred[:, 5] - tgt[:, 5]) * mask).sum() / msum
             l_e = (torch.abs(pred[:, 6] - tgt[:, 6]) * mask).sum() / msum
-            loss = l_dens + 0.01 * l_cnt + l_heat + 0.5 * (l_a + l_e)
+            loss = l_dens + 0.01 * l_cnt + w_heat * l_heat + w_attr * (l_a + l_e)
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -226,20 +235,35 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--threads", type=int, default=0,
                     help="torch intra-op threads (0 = leave solution.py's pin)")
+    ap.add_argument("--train-seed", type=int, default=None,
+                    help="training seed (default: solution.SEED); the tr/va "
+                         "split always stays at solution.SEED")
+    ap.add_argument("--w-attr", type=float, default=0.5,
+                    help="weight on the (area + elongation) L1 terms")
+    ap.add_argument("--w-heat", type=float, default=1.0,
+                    help="weight on the heat MSE term")
+    ap.add_argument("--dump-best-only", action="store_true",
+                    help="dump maps for the best checkpoint only (halves disk);"
+                         " ckpt_second.pt is still written")
     args = ap.parse_args()
 
     # solution.py pins torch to min(10, ncores) at import; experiment boxes are wider.
     if args.threads > 0:
         torch.set_num_threads(args.threads)
 
+    train_seed = S.SEED if args.train_seed is None else args.train_seed
+
     DATA = Path(args.data)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "maps_best").mkdir(exist_ok=True)
-    (out / "maps_second").mkdir(exist_ok=True)
+    if not args.dump_best_only:
+        (out / "maps_second").mkdir(exist_ok=True)
     epochs = 2 if args.smoke else args.epochs
 
     P(f"exp_base data={DATA} out={out} epochs={epochs} smoke={args.smoke}")
+    P(f"train_seed={train_seed} (split_seed={S.SEED}) w_attr={args.w_attr} "
+      f"w_heat={args.w_heat} dump_best_only={bool(args.dump_best_only)}")
     P(f"device={S.DEVICE} threads={torch.get_num_threads()} torch={torch.__version__}")
 
     # ---------------- data (mirrors sim_eval.py exactly) ----------------
@@ -293,8 +317,9 @@ def main():
 
     # ---------------- train ----------------
     model_best, tau_a, keep, history = train_top2(
-        images, cells_by, tr_a, va_a, targets, train_stats, S.SEED,
-        stop_min=10000, epochs=epochs, tag="A")
+        images, cells_by, tr_a, va_a, targets, train_stats, train_seed,
+        stop_min=10000, epochs=epochs, tag="A",
+        w_attr=args.w_attr, w_heat=args.w_heat)
 
     if len(keep) == 0:
         print("[FATAL] no validated epoch", flush=True)
@@ -313,7 +338,10 @@ def main():
             "train_stats": train_stats, "val_history": history,
             "best": {"epoch": b_ep, "mean_tau": b_tau},
             "second": {"epoch": s_ep, "mean_tau": s_tau},
-            "epochs": epochs, "smoke": bool(args.smoke)}
+            "epochs": epochs, "smoke": bool(args.smoke),
+            "train_seed": int(train_seed), "w_attr": float(args.w_attr),
+            "w_heat": float(args.w_heat),
+            "dump_best_only": bool(args.dump_best_only)}
     (out / "meta.json").write_text(json.dumps(meta, indent=1))
 
     model_second = deepcopy(model_best)
@@ -323,7 +351,12 @@ def main():
 
     # ---------------- dump D4 views ----------------
     dump_ids = list(va_a) + list(ptest_ids)
-    for mdl, sub in [(model_best, "maps_best"), (model_second, "maps_second")]:
+    dump_specs = [(model_best, "maps_best")]
+    if not args.dump_best_only:
+        dump_specs.append((model_second, "maps_second"))
+    else:
+        P("dump_best_only: skipping maps_second")
+    for mdl, sub in dump_specs:
         P(f"dumping {len(dump_ids)} tiles -> {sub}")
         t_d = time.time()
         for i, iid in enumerate(dump_ids):

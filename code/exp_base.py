@@ -367,26 +367,34 @@ def main():
                   f"({(time.time()-t_d)/60:.1f}m in dump)")
 
     # ---------------- gate (a): parity vs S.predict_maps ----------------
+    # Per-channel tolerance.  These are float16 STORAGE-quantization budgets,
+    # not geometry budgets: dens/heat sit on a small numeric range, while amap
+    # carries log-area (~0..7.6) where fp16 eps alone is ~4e-3.  A genuine view
+    # or geometry bug produces O(1) error and still trips any of these.
+    GATE_TOL = {"dens": 3e-3, "heat": 3e-3, "amap": 8e-3, "emap": 8e-3}
+    CHANS = ["dens", "heat", "amap", "emap"]
     P("=== GATE A: view-reconstruction parity ===")
     gate_ids = list(va_a[:8]) + list(ptest_ids[:8])
     sels = {1: [0], 2: [0, 1], 4: [0, 1, 2, 3]}
     ok_all = True
     for tta, sel in sels.items():
-        worst = 0.0
-        worst_where = ""
+        worst = {c: 0.0 for c in CHANS}
+        where = {c: "" for c in CHANS}
         for iid in gate_ids:
             v = np.load(out / "maps_best" / f"{iid}.npz")["v"]
             r = maps_from_views(v, sel)
             ref = S.predict_maps(model_best, images[iid], tta=tta)
-            for name, a, b in zip(["dens", "heat", "amap", "emap"], r, ref):
+            for name, a, b in zip(CHANS, r, ref):
                 d = float(np.max(np.abs(np.asarray(a, np.float64) -
                                         np.asarray(b, np.float64))))
-                if d > worst:
-                    worst, worst_where = d, f"{iid}:{name}"
-        status = "PASS" if worst < 3e-3 else "FAIL"
-        ok_all = ok_all and (worst < 3e-3)
-        print(f"[gate] tta={tta} views={sel} max_abs_diff={worst:.3e} "
-              f"({worst_where}) {status}", flush=True)
+                if d > worst[name]:
+                    worst[name], where[name] = d, iid
+        ok = all(worst[c] < GATE_TOL[c] for c in CHANS)
+        ok_all = ok_all and ok
+        detail = " ".join(f"{c}={worst[c]:.3e}/{GATE_TOL[c]:g}({where[c]})"
+                          for c in CHANS)
+        print(f"[gate] tta={tta} views={sel} {detail} "
+              f"{'PASS' if ok else 'FAIL'}", flush=True)
     if not ok_all:
         print("[gate] PARITY FAIL", flush=True)
         sys.exit(1)

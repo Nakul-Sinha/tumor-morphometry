@@ -12,8 +12,10 @@ Usage: python test_decode_sweep_synth.py [--keep]
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -21,15 +23,20 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent))
+# flat layout first (solution.py next to this file), repo layout second
+# (solution.py in HERE.parent, this file in code/).
+if (HERE / "solution.py").exists():
+    sys.path.insert(0, str(HERE))
+else:
+    sys.path.insert(0, str(HERE.parent))
+    sys.path.insert(1, str(HERE))
 
 import solution as S  # noqa: E402
 import decode_sweep as DS  # noqa: E402
 from metric import COLS  # noqa: E402
 
-SCRATCH = Path(r"C:\Users\nakul\AppData\Local\Temp\claude"
-               r"\G--Datacurve-Latest-Chals\da66ee4a-e36e-4362-b628-ae671430fee1\scratchpad")
+SCRATCH = Path(os.environ.get("CH2_SCRATCH",
+                              Path(tempfile.gettempdir()) / "ch2_synth_scratch"))
 RUN = SCRATCH / "synth_run"
 DATA = SCRATCH / "synth_data"
 

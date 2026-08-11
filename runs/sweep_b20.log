@@ -1,0 +1,92 @@
+[sizes] meta lacks 580 ids -> PNG header fallback
+[load] 580 tiles (178 va / 402 ptest), 4044 MiB fp16, 16.0s
+
+=== phase 0: reference ===
+[var] REF_tta4_best              va 0.5506 ptest 0.5400 | cell=0.752 tumo=0.607 size=0.366 elon=0.574 disp=0.401 | cthr=5.0e-04 alt[AA]
+
+=== phase 1: TTA view subsets ===
+[var] TTA_v0                     va 0.5518 ptest 0.5410 | cell=0.751 tumo=0.594 size=0.437 elon=0.560 disp=0.362 | cthr=5.0e-04 alt[AA]
+[var] TTA_v01                    va 0.5519 ptest 0.5490 | cell=0.748 tumo=0.603 size=0.408 elon=0.576 disp=0.410 | cthr=5.0e-04 alt[AA]
+[var] TTA_v0123                  va 0.5506 ptest 0.5400 | cell=0.752 tumo=0.607 size=0.366 elon=0.574 disp=0.401 | cthr=5.0e-04 alt[AA]
+[var] TTA_v01234567              va 0.5572 ptest 0.5422 | cell=0.748 tumo=0.605 size=0.356 elon=0.583 disp=0.418 | cthr=5.0e-04 alt[AA]
+[var] TTA_v04                    va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] TTA_v0145                  va 0.5545 ptest 0.5495 | cell=0.748 tumo=0.605 size=0.385 elon=0.585 disp=0.425 | cthr=5.0e-04 alt[AA]
+[tta] best by va: (0, 4)  (best by ptest, for info: (0, 4))
+
+=== phase 2: snapshot combination ===
+[var] SNAP_tta4_best             va 0.5506 ptest 0.5400 | cell=0.752 tumo=0.607 size=0.366 elon=0.574 disp=0.401 | cthr=5.0e-04 alt[AA]
+[var] SNAP_tta4_avg_decode       va 0.5540 ptest 0.5402 | cell=0.752 tumo=0.594 size=0.353 elon=0.569 disp=0.432 | cthr=5.0e-04 alt[AA]
+[var] SNAP_tta4_avg_maps         va 0.5406 ptest 0.5362 | cell=0.750 tumo=0.594 size=0.338 elon=0.565 disp=0.433 | cthr=5.0e-04 alt[AA]
+[var] SNAP_tta8_best             va 0.5572 ptest 0.5422 | cell=0.748 tumo=0.605 size=0.356 elon=0.583 disp=0.418 | cthr=5.0e-04 alt[AA]
+[var] SNAP_tta8_avg_decode       va 0.5478 ptest 0.5334 | cell=0.744 tumo=0.594 size=0.334 elon=0.576 disp=0.420 | cthr=5.0e-04 alt[AA]
+[var] SNAP_tta8_avg_maps         va 0.5413 ptest 0.5284 | cell=0.743 tumo=0.593 size=0.323 elon=0.571 disp=0.412 | cthr=5.0e-04 alt[AA]
+
+=== phase 3: cthr sensitivity (report only) ===
+[cthr:tta8] 5.0e-05: va mean 0.5343 | cell=0.748 tumo=0.675 size=0.348 elon=0.568 disp=0.333
+[cthr:tta8] 1.0e-04: va mean 0.5444 | cell=0.748 tumo=0.674 size=0.378 elon=0.573 disp=0.349
+[cthr:tta8] 2.0e-04: va mean 0.5638 | cell=0.747 tumo=0.676 size=0.438 elon=0.581 disp=0.377
+[cthr:tta8] 3.0e-04: va mean 0.5708 | cell=0.741 tumo=0.675 size=0.470 elon=0.575 disp=0.393
+[cthr:tta8] 5.0e-04: va mean 0.5942 | cell=0.736 tumo=0.678 size=0.534 elon=0.557 disp=0.466
+[cthr:tta8] 8.0e-04: va mean 0.5755 | cell=0.716 tumo=0.679 size=0.556 elon=0.554 disp=0.373
+[cthr:tta8] 1.2e-03: va mean 0.5226 | cell=0.626 tumo=0.684 size=0.522 elon=0.499 disp=0.281
+[cthr:tta8] 1.6e-03: va mean 0.4680 | cell=0.516 tumo=0.686 size=0.443 elon=0.468 disp=0.226
+[cthr:tta8] 2.0e-03: va mean 0.4280 | cell=0.435 tumo=0.685 size=0.383 elon=0.421 disp=0.215
+[cthr:tta1_selection_pass] 5.0e-05: va mean 0.5071 | cell=0.748 tumo=0.669 size=0.270 elon=0.543 disp=0.307
+[cthr:tta1_selection_pass] 1.0e-04: va mean 0.5082 | cell=0.748 tumo=0.670 size=0.282 elon=0.548 disp=0.294
+[cthr:tta1_selection_pass] 2.0e-04: va mean 0.5202 | cell=0.747 tumo=0.671 size=0.318 elon=0.561 disp=0.303
+[cthr:tta1_selection_pass] 3.0e-04: va mean 0.5333 | cell=0.746 tumo=0.670 size=0.373 elon=0.552 disp=0.325
+[cthr:tta1_selection_pass] 5.0e-04: va mean 0.5457 | cell=0.743 tumo=0.672 size=0.446 elon=0.545 disp=0.322
+[cthr:tta1_selection_pass] 8.0e-04: va mean 0.5439 | cell=0.726 tumo=0.677 size=0.476 elon=0.520 disp=0.321
+[cthr:tta1_selection_pass] 1.2e-03: va mean 0.5090 | cell=0.650 tumo=0.678 size=0.431 elon=0.489 disp=0.297
+[cthr:tta1_selection_pass] 1.6e-03: va mean 0.4577 | cell=0.556 tumo=0.684 size=0.356 elon=0.442 disp=0.250
+[cthr:tta1_selection_pass] 2.0e-03: va mean 0.4120 | cell=0.458 tumo=0.690 size=0.321 elon=0.389 disp=0.202
+
+=== phase 4: NMS/peak knobs (views=(0, 4), snapshot=best) ===
+[var] nms_radius=1               va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] nms_radius=2               va 0.5565 ptest 0.5524 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] peak_thr=0.03              va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] peak_thr=0.05              va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] peak_thr=0.08              va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] peak_thr=0.12              va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] k_mult=0.8                 va 0.5783 ptest 0.5626 | cell=0.751 tumo=0.604 size=0.482 elon=0.583 disp=0.393 | cthr=3.0e-04 alt[-A]
+[var] k_mult=1.0                 va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] k_mult=1.2                 va 0.5457 ptest 0.5383 | cell=0.739 tumo=0.588 size=0.386 elon=0.582 disp=0.397 | cthr=8.0e-04 alt[AA]
+[knobs] best-by-va one-at-a-time: {'nms_radius': 1, 'peak_thr': 0.03, 'k_mult': 0.8}
+[var] JOINT_peaks_best           va 0.5783 ptest 0.5626 | cell=0.751 tumo=0.604 size=0.482 elon=0.583 disp=0.393 | cthr=3.0e-04 alt[-A]
+
+=== phase 5: readout window ===
+[var] readout_r=1                va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] readout_r=2                va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+
+=== phase 6: alt mask threshold ===
+[var] alt_mask_thr=0.3           va 0.5728 ptest 0.5617 | cell=0.752 tumo=0.596 size=0.470 elon=0.579 disp=0.413 | cthr=5.0e-04 alt[-A]
+[var] alt_mask_thr=0.5           va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] alt_mask_thr=1.0           va 0.5608 ptest 0.5546 | cell=0.752 tumo=0.596 size=0.427 elon=0.585 disp=0.413 | cthr=5.0e-04 alt[AA]
+
+=== phase 7: dispersion estimators ===
+[var] disp=peaks                 va 0.5573 ptest 0.5523 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.413 | cthr=5.0e-04 alt[AA]
+[var] disp=soft_s0               va 0.5211 ptest 0.5154 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.228 | cthr=5.0e-04 alt[AA]
+[var] disp=soft_s1               va 0.5214 ptest 0.5155 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.228 | cthr=5.0e-04 alt[AA]
+[var] disp=soft_s2               va 0.5211 ptest 0.5154 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.228 | cthr=5.0e-04 alt[AA]
+[var] disp=soft_s4               va 0.5457 ptest 0.5269 | cell=0.739 tumo=0.588 size=0.495 elon=0.582 disp=0.231 | cthr=8.0e-04 alt[-A]
+[var] disp=quadrat_g8            va 0.5209 ptest 0.5126 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.214 | cthr=5.0e-04 alt[AA]
+[var] disp=quadrat_g16           va 0.5327 ptest 0.5194 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.248 | cthr=5.0e-04 alt[AA]
+[var] disp=quadrat_g32           va 0.5426 ptest 0.5211 | cell=0.752 tumo=0.596 size=0.417 elon=0.584 disp=0.257 | cthr=5.0e-04 alt[AA]
+
+=== ranked by ptest mean tau (REF = 0.5400) ===
+  k_mult=0.8                 ptest 0.5626 (+0.0227)  va 0.5783
+  JOINT_peaks_best           ptest 0.5626 (+0.0227)  va 0.5783
+  alt_mask_thr=0.3           ptest 0.5617 (+0.0218)  va 0.5728
+  alt_mask_thr=1.0           ptest 0.5546 (+0.0146)  va 0.5608
+  nms_radius=2               ptest 0.5524 (+0.0124)  va 0.5565
+  TTA_v04                    ptest 0.5523 (+0.0123)  va 0.5573
+  nms_radius=1               ptest 0.5523 (+0.0123)  va 0.5573
+  peak_thr=0.03              ptest 0.5523 (+0.0123)  va 0.5573
+  peak_thr=0.05              ptest 0.5523 (+0.0123)  va 0.5573
+  peak_thr=0.08              ptest 0.5523 (+0.0123)  va 0.5573
+  peak_thr=0.12              ptest 0.5523 (+0.0123)  va 0.5573
+  k_mult=1.0                 ptest 0.5523 (+0.0123)  va 0.5573
+  readout_r=1                ptest 0.5523 (+0.0123)  va 0.5573
+  readout_r=2                ptest 0.5523 (+0.0123)  va 0.5573
+  alt_mask_thr=0.5           ptest 0.5523 (+0.0123)  va 0.5573
+wrote /home/ec2-user/ch2exp/sweep_b20.json (36 records, 39248 decodes, 1.03 min)
